@@ -1,4 +1,8 @@
 #include <SDL3/SDL.h> //include the sdl header
+#include <vector>
+#include <cmath> // for sqrtf
+
+#include "TowerDefense/Enemy.h"// for enemy
 
 int main(int argc, char* argv[])
 {
@@ -54,6 +58,22 @@ int main(int argc, char* argv[])
 	const float tileWidth = 800.f / tileCols;
 	const float tileHeight = 600.f / tileRows;
 
+	//--------------end grid settings----------//
+	//-------------enemies------------------//
+
+	std::vector<SDL_FPoint> path =
+	{
+		{50.f, 50.f},
+		{200.f, 50.f},
+		{200.f, 200.f},
+		{400.f, 200.f},
+		{400.f, 400.f}
+	};
+
+	Enemy enemy(path);
+	
+	//------------end enemies--------------//
+
 	//set rectangle location and size (x,y,w,h)
 	SDL_FRect Tower = { 100.f, 250.f, 50.f, 100.f };
 
@@ -97,6 +117,8 @@ int main(int argc, char* argv[])
 		if (Tower.x + Tower.w > 800)Tower.x = 800 - Tower.w;//(Tower.x+Tower.w) right edge of rectangle
 		if (Tower.y + Tower.h > 600)Tower.y = 600 - Tower.h;//(Tower.y+Tower.h) bottom edge of rectangle
 
+		enemy.Update(deltaTime, path);
+
 		SDL_SetRenderDrawColor(Renderer, 30, 30, 30, 255);//set draw colour dark grey
 		SDL_RenderClear(Renderer);//clear the screen with grey colour
 
@@ -126,6 +148,9 @@ int main(int argc, char* argv[])
 
 		//render the tower on screen
 		SDL_RenderFillRect(Renderer, &Tower);
+
+		//render the enemy
+		enemy.Render(Renderer);
 
 		SDL_RenderPresent(Renderer);//present the result to the window
 	}
