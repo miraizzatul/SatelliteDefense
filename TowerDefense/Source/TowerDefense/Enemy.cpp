@@ -14,16 +14,19 @@ void Enemy::Update(float deltaTime, const std::vector<SDL_FPoint>& path)
 		return;
 
 	SDL_FPoint target = path[targetIndex];
-	float dx = target.x - rect.x;
-	float dy = target.y - rect.y;
+	float dx = target.x - rect.x; //get direction to x target
+	float dy = target.y - rect.y; //get direction to y target
 	float dist = std::sqrt(dx * dx + dy * dy); //use phytagorean theorem to get distance to next waypoint
 
-	if (dist > 0.1f) //if enemy is already close to target, stop moving to avoid jittering
+	//Moves enemy toward target waypoint
+	//if enemy is already close to target (dist > 0.1), stop moving to avoid jittering, 
+	// basically saying dont move unless we're clearly not there yet
+	if (dist > 0.1f) 
 	{
 		rect.x += (dx / dist) * speed * deltaTime;
 		rect.y += (dy / dist) * speed * deltaTime;
 	}
-	if (dist < 2.f) //snap to target and go to the next point
+	if (dist < 2.f) //snap to target when close enough and go to the next point
 	{
 		rect.x = target.x;
 		rect.y = target.y;
@@ -40,4 +43,9 @@ void Enemy::Render(SDL_Renderer* renderer) const
 bool Enemy::ReachedEnd(const std::vector<SDL_FPoint>& path)
 {
 	return targetIndex >= path.size();//returns true if enemy reached final waypoint
+}
+
+SDL_FRect Enemy::GetRect() const
+{
+	return rect;
 }

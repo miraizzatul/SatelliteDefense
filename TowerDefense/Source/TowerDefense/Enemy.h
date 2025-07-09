@@ -17,6 +17,8 @@ public:
 
 	bool ReachedEnd(const std::vector<SDL_FPoint>& path);
 
+	SDL_FRect GetRect() const; //encapsulated enemy access
+
 private:
 
 	//position & size of enemy (x,y,w,h)
