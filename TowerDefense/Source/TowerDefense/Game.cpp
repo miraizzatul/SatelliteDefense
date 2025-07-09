@@ -107,16 +107,38 @@ void Game::ProcessInput()
 		{
 			keys[event.key.scancode] = false;
 		}
+		else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+		{
+			if (event.button.button == SDL_BUTTON_LEFT)
+			{
+				float mouseX = static_cast<float>(event.button.x);
+				float mouseY = static_cast<float>(event.button.y);
+				PlaceTowerOnGrid(mouseX, mouseY);
+			}
+		}
 	}
 }
 
 void Game::Update(float deltaTime)
 {
-	ClampTowerMovement(deltaTime);
+	//ClampTowerMovement(deltaTime);
 	SpawnEnemy(deltaTime);
+
+	//Update all towers to check for enemies and shoot
+	for (auto& tower : towers)
+		tower.Update(deltaTime, enemies, bullets);
 
 	for (auto& e : enemies)
 		e.Update(deltaTime, path);
+
+	//update bullets
+	for (auto& bullet : bullets)
+		bullet.Update(deltaTime);
+
+	//remove bullets that are offscreen
+	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [this](const Bullet& b) {
+		return b.IsOffScreen(windowWidth, windowHeight);
+	}), bullets.end());
 }
 
 void Game::Render()
@@ -126,12 +148,6 @@ void Game::Render()
 
 	//clear the renderer (fills with draw colour
 	SDL_RenderClear(renderer);
-
-	//Define grid settings
-	const int tileCols = 10;
-	const int tileRows = 8;
-	const float tileWidth = 800.f / tileCols;
-	const float tileHeight = 600.f / tileRows;
 
 	//draw simple grid tiles
 	for (int row = 0; row < tileRows; ++row)
@@ -164,6 +180,10 @@ void Game::Render()
 	for (auto& enemy : enemies)
 		enemy.Render(renderer);
 
+	//bullets
+	for (auto& bullet : bullets)
+		bullet.Render(renderer);
+
 	SDL_RenderPresent(renderer);//present the result to the window
 }
 
@@ -191,4 +211,29 @@ void Game::ClampTowerMovement(float deltaTime)
 
 	//Clamp the tower from going offscreen
 	playerTower.ClampPosition(windowWidth, windowHeight);
+}
+
+void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
+{
+	//snap mouse click to the top left of the grid cell
+	int col = static_cast<int>(mouseX / tileWidth);
+	int row = static_cast<int>(mouseY / tileHeight);
+
+	float snappedX = col * tileWidth;
+	float snappedY = row * tileHeight;
+	
+	//define tower size and range
+	float towerSize = 40.f;
+	float towerRange = 150.f;
+
+	for (const auto& tower : towers)
+	{
+		SDL_FRect rect = tower.GetRect();
+		if (snappedX == rect.x && snappedY == rect.y) 
+		{
+			return; //tower already placed here
+		}
+	}
+	towers.emplace_back(snappedX, snappedY, towerSize, towerRange);
+
 }

@@ -27,6 +27,9 @@
     <ClCompile Include="Source\TowerDefense\Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\TowerDefense\Bullet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\TowerDefense\Enemy.h">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\TowerDefense\Game.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TowerDefense\Bullet.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

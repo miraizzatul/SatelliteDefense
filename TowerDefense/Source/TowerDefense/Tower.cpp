@@ -1,5 +1,4 @@
 #include "Tower.h"
-#include "Enemy.h"
 #include <cmath>
 
 Tower::Tower(float x, float y, float size, float range) 
@@ -8,7 +7,7 @@ Tower::Tower(float x, float y, float size, float range)
 	rect = { x, y, size, size };
 }
 
-void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies)
+void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets)
 {
 	timeSinceLastShot += deltaTime;
 
@@ -23,7 +22,7 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies)
 		//get distance between current location to target enemy location
 		float dx = (enemyRect.x + enemyRect.w / 2) - (rect.x + rect.w / 2);
 		float dy = (enemyRect.y + enemyRect.h / 2) - (rect.y + rect.h / 2);
-		float dist = std::sqrt(dx * dy + dy * dy);
+		float dist = std::sqrt(dx * dx + dy * dy);
 
 		if (dist < closestDist)
 		{
@@ -33,8 +32,17 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies)
 	}
 	if (target && timeSinceLastShot >= attackCooldown)
 	{
-		//future: shoot at enemy
-		//for now: just reset cooldown
+		//calculate bullet spawn point(center of tower)
+		float startX = rect.x + rect.w / 2;
+		float startY = rect.y + rect.h / 2;
+
+		//calculate bullet target point(center of enemy)
+		SDL_FRect enemyRect = target->GetRect();
+		float targetX = enemyRect.x + enemyRect.w / 2;
+		float targetY= enemyRect.y + enemyRect.h / 2;
+
+		//create bullet and add to bullets vector
+		bullets.emplace_back(startX, startY, targetX, targetY);
 		timeSinceLastShot = 0.f;
 	}
 }

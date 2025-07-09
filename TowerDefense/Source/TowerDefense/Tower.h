@@ -1,15 +1,15 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <vector>
-
-class Enemy;
+#include "Bullet.h"
+#include "Enemy.h"
 
 class Tower
 {
 public:
 	Tower(float x, float y, float size, float range);
 
-	void Update(float deltaTime, const std::vector<Enemy>& enemies);
+	void Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets);
 	void Render(SDL_Renderer* renderer, bool showRange = false) const;
 	void Move(float dx, float dy);
 	void ClampPosition(int screenWidth, int screenHeight);

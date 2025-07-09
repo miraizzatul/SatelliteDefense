@@ -133,11 +133,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\TowerDefense\Bullet.cpp" />
     <ClCompile Include="Source\TowerDefense\Enemy.cpp" />
     <ClCompile Include="Source\TowerDefense\Game.cpp" />
     <ClCompile Include="Source\TowerDefense\Tower.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\TowerDefense\Bullet.h" />
     <ClInclude Include="Source\TowerDefense\Enemy.h" />
     <ClInclude Include="Source\TowerDefense\Game.h" />
     <ClInclude Include="Source\TowerDefense\Tower.h" />

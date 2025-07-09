@@ -4,6 +4,7 @@
 #include <vector>
 #include "Enemy.h"
 #include "Tower.h"
+#include "Bullet.h"
 
 class Game
 {
@@ -21,6 +22,7 @@ private:
 	void Render();
 	void SpawnEnemy(float deltaTime);
 	void ClampTowerMovement(float deltaTime);
+	void PlaceTowerOnGrid(float mouseX, float mouseY);
 
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
@@ -39,8 +41,15 @@ private:
 	std::vector<Enemy> enemies;
 	std::vector<Tower> towers;
 	std::vector<SDL_FPoint> path;
+	std::vector<Bullet> bullets;
 
 	const int windowWidth = 800;
 	const int windowHeight = 600;
+
+	//Define grid settings
+	const int tileCols = 10;
+	const int tileRows = 8;
+	const float tileWidth = 800.f / tileCols;
+	const float tileHeight = 600.f / tileRows;
 
 };
