@@ -2,9 +2,10 @@
 
 #include <SDL3/SDL.h>
 #include <vector>
-#include "Enemy.h"
-#include "Tower.h"
-#include "Bullet.h"
+
+class Enemy;
+class Tower;
+class Bullet;
 
 class Game
 {
@@ -40,11 +41,12 @@ private:
 
 	std::vector<Enemy> enemies;
 	std::vector<Tower> towers;
-	std::vector<SDL_FPoint> path;
 	std::vector<Bullet> bullets;
 
 	const int windowWidth = 800;
 	const int windowHeight = 600;
+
+	SDL_FPoint goal;
 
 	//Define grid settings
 	const int tileCols = 10;

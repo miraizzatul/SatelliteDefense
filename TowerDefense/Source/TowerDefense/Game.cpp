@@ -1,5 +1,8 @@
 #include "Game.h"
 #include <SDL3/SDL.h> //include the sdl header
+#include "Enemy.h"
+#include "Tower.h"
+#include "Bullet.h"
 
 Game::Game()
 {
@@ -42,14 +45,8 @@ bool Game::Init()
 	//present the renderer to the window
 	SDL_RenderPresent(renderer);
 
-	// Set up enemy path
-	path = {{50.f, 50.f}, {300.f, 50.f}, {300.f, 300.f}, {600.f, 300.f}, {600.f, 500.f}};
-
-	// add one enemy
-	enemies.emplace_back(path);
-
-	// Add one tower
-	towers.emplace_back(400.f, 200.f, 40.f, 150.f);
+	//set goal at the center
+	goal = { windowWidth / 2.f,windowHeight / 2.f };
 
 	running = true;// keeps running until the window is closed
 	now = SDL_GetPerformanceCounter();// get timestamp
@@ -129,7 +126,7 @@ void Game::Update(float deltaTime)
 		tower.Update(deltaTime, enemies, bullets);
 
 	for (auto& e : enemies)
-		e.Update(deltaTime, path);
+		e.Update(deltaTime, towers);
 
 	//update bullets
 	for (auto& bullet : bullets)
@@ -192,7 +189,24 @@ void Game::SpawnEnemy(float deltaTime)
 	enemySpawnTimer += deltaTime;
 	if (enemySpawnTimer >= spawnInterval)
 	{
-		enemies.emplace_back(path);
+		SDL_FPoint spawnPos;
+		int side = rand() % 4; // 0 = top, 1 = bottom, 2 = left, 3 = right
+		switch (side)
+		{
+		case 0: //Top
+			spawnPos = { static_cast<float>(rand() % windowWidth), 0.f };
+			break;
+		case 1: //Bottom
+			spawnPos = { static_cast<float>(rand() % windowWidth), static_cast<float>(rand() % windowHeight) };
+			break;
+		case 2: //Left
+			spawnPos = { 0.f, static_cast<float>(rand() % windowHeight)};
+			break;
+		case 3: //Right
+			spawnPos = { static_cast<float>(rand() % windowWidth), static_cast<float>(rand() % windowHeight)};
+			break;
+		}
+		enemies.emplace_back(spawnPos, goal);
 		enemySpawnTimer = 0.f;
 	}
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <vector>
-#include "Bullet.h"
-#include "Enemy.h"
+
+class Enemy;
+class Bullet;
 
 class Tower
 {

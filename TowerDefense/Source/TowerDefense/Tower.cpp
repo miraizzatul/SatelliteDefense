@@ -1,5 +1,7 @@
 #include "Tower.h"
 #include <cmath>
+#include "Bullet.h"
+#include "Enemy.h"
 
 Tower::Tower(float x, float y, float size, float range) 
 	: range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
