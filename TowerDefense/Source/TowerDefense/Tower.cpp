@@ -3,10 +3,11 @@
 #include "Bullet.h"
 #include "Enemy.h"
 
-Tower::Tower(float x, float y, float size, float range) 
+Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 	: range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
 {
 	rect = { x, y, size, size };
+	red = r, green = g, blue = b, alpha = a;
 }
 
 void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets)
@@ -52,7 +53,7 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 void Tower::Render(SDL_Renderer* renderer, bool showRange) const
 {
 	//tower square
-	SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
+	SDL_SetRenderDrawColor(renderer, red, green, blue, alpha);
 	SDL_RenderFillRect(renderer, &rect);
 
 	if (showRange)
@@ -93,7 +94,21 @@ void Tower::ClampPosition(int screenWidth, int screenHeight)
 	if (rect.y + rect.w > screenHeight)rect.y = screenHeight- rect.h;//(Tower.y+Tower.h) bottom edge of rectangle
 }
 
+void Tower::TakeDamage(float amount)
+{
+	currentHP -= amount;
+	if (currentHP <= 0.f)
+	{
+		isDestroyed = true;
+	}
+}
+
 SDL_FRect Tower::GetRect() const
 {
 	return rect;
+}
+
+bool Tower::IsDestroyed() const
+{
+	return isDestroyed;
 }

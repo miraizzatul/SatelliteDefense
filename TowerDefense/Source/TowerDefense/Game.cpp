@@ -2,7 +2,9 @@
 #include <SDL3/SDL.h> //include the sdl header
 #include "Enemy.h"
 #include "Tower.h"
+#include "Satellite.h"
 #include "Bullet.h"
+#include <memory>
 
 Game::Game()
 {
@@ -45,8 +47,9 @@ bool Game::Init()
 	//present the renderer to the window
 	SDL_RenderPresent(renderer);
 
-	//set goal at the center
-	goal = { windowWidth / 2.f,windowHeight / 2.f };
+	//set satellite at the center
+	towers.emplace_back(std::make_unique<Satellite>(windowWidth / 2.f, windowHeight / 2.f, 30.f, 150.f, 
+		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255)));
 
 	running = true;// keeps running until the window is closed
 	now = SDL_GetPerformanceCounter();// get timestamp
@@ -123,7 +126,7 @@ void Game::Update(float deltaTime)
 
 	//Update all towers to check for enemies and shoot
 	for (auto& tower : towers)
-		tower.Update(deltaTime, enemies, bullets);
+		tower->Update(deltaTime, enemies, bullets);
 
 	for (auto& e : enemies)
 		e.Update(deltaTime, towers);
@@ -131,6 +134,10 @@ void Game::Update(float deltaTime)
 	//update bullets
 	for (auto& bullet : bullets)
 		bullet.Update(deltaTime);
+
+	//remove towers that are destroyed
+	towers.erase(std::remove_if(towers.begin(), towers.end(),
+		[](std::unique_ptr<Tower>& t) { return t->IsDestroyed(); }), towers.end());
 
 	//remove bullets that are offscreen
 	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [this](const Bullet& b) {
@@ -168,10 +175,10 @@ void Game::Render()
 		}
 	}
 	//create green tower colour
-	SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
+	//SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
 
 	for (auto& tower : towers)
-		tower.Render(renderer);
+		tower->Render(renderer);
 
 	//render all enemies
 	for (auto& enemy : enemies)
@@ -206,7 +213,7 @@ void Game::SpawnEnemy(float deltaTime)
 			spawnPos = { static_cast<float>(rand() % windowWidth), static_cast<float>(rand() % windowHeight)};
 			break;
 		}
-		enemies.emplace_back(spawnPos, goal);
+		enemies.emplace_back(spawnPos);
 		enemySpawnTimer = 0.f;
 	}
 }
@@ -215,7 +222,7 @@ void Game::ClampTowerMovement(float deltaTime)
 {
 	if (towers.empty()) return;
 
-	Tower& playerTower = towers[0]; // Control the first tower
+	Tower& playerTower = *towers[0]; // Control the first tower
 	
 	//movement logic
 	if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP]) playerTower.Move(0, -speed * deltaTime);
@@ -242,12 +249,14 @@ void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 
 	for (const auto& tower : towers)
 	{
-		SDL_FRect rect = tower.GetRect();
+		SDL_FRect rect = tower->GetRect();
 		if (snappedX == rect.x && snappedY == rect.y) 
 		{
 			return; //tower already placed here
 		}
 	}
-	towers.emplace_back(snappedX, snappedY, towerSize, towerRange);
-
+	towers.emplace_back(std::make_unique<Tower>
+		(snappedX, snappedY, towerSize, towerRange,
+		static_cast<Uint8>(0), static_cast<Uint8>(200), 
+			static_cast<Uint8>(0), static_cast<Uint8>(255)));
 }

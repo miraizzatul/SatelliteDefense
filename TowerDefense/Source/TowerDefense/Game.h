@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <vector>
+#include<memory>
 
 class Enemy;
 class Tower;
@@ -40,13 +41,13 @@ private:
 	const float spawnInterval = 2.f;
 
 	std::vector<Enemy> enemies;
-	std::vector<Tower> towers;
+	std::vector<std::unique_ptr<Tower>> towers; //allows storing both tower and satellite objects and auto cleanup memory
 	std::vector<Bullet> bullets;
 
 	const int windowWidth = 800;
 	const int windowHeight = 600;
 
-	SDL_FPoint goal;
+	Tower* goal = nullptr;
 
 	//Define grid settings
 	const int tileCols = 10;

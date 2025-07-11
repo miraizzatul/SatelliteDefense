@@ -3,19 +3,7 @@
 
 Bullet::Bullet(float x, float y, float targetX, float targetY):x(x), y(y)
 {
-	float dx = targetX - x;
-	float dy = targetY - y;
-	float length = std::sqrt(dx * dx + dy * dy);
-
-	if (length != 0.f)
-	{
-		vx = (dx / length) * speed;
-		vy = (dy / length) * speed;
-	}
-	else
-	{
-		vx = vy = 0.f;
-	}
+	Activate(x, y, targetX, targetY);
 }
 
 void Bullet::Update(float deltaTime)
@@ -39,5 +27,26 @@ bool Bullet::IsOffScreen(int screenWidth, int screenHeight) const
 SDL_FPoint Bullet::GetPosition() const
 {
 	return { x,y };
+}
+
+void Bullet::Activate(float startX, float startY, float targetX, float targetY)
+{
+	x = startX;
+	y = startY;
+	isActive = true;
+
+	float dx = targetX - x;
+	float dy = targetY - y;
+	float length = std::sqrt(dx * dx + dy * dy);
+
+	if (length != 0.f)
+	{
+		vx = (dx / length) * speed;
+		vy = (dy / length) * speed;
+	}
+	else
+	{
+		vx = vy = 0.f;
+	}
 }
 
