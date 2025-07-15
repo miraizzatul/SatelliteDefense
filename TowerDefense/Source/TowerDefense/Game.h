@@ -42,7 +42,6 @@ private:
 
 	std::vector<Enemy> enemies;
 	std::vector<std::unique_ptr<Tower>> towers; //allows storing both tower and satellite objects and auto cleanup memory
-	std::vector<Bullet> bullets;
 
 	const int windowWidth = 800;
 	const int windowHeight = 600;

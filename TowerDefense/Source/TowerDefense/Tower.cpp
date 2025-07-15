@@ -3,8 +3,10 @@
 #include "Bullet.h"
 #include "Enemy.h"
 
+int Tower::nextID = 0;
+
 Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
-	: range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
+	: range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr), ID(nextID++)
 {
 	rect = { x, y, size, size };
 	red = r, green = g, blue = b, alpha = a;
@@ -12,6 +14,8 @@ Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 
 
 void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets)
 {
+	if (!canDealDamage) return;
+
 	timeSinceLastShot += deltaTime;
 
 	//Find closest enemy in range
@@ -44,9 +48,15 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 		float targetX = enemyRect.x + enemyRect.w / 2;
 		float targetY= enemyRect.y + enemyRect.h / 2;
 
-		//create bullet and add to bullets vector
-		bullets.emplace_back(startX, startY, targetX, targetY);
-		timeSinceLastShot = 0.f;
+		for (Bullet& bullet : bullets)
+		{
+			if (!bullet.IsActive())
+			{
+				bullet.Activate(startX, startY, targetX, targetY, ID);
+				timeSinceLastShot = 0.f;
+				break;
+			}
+		}
 	}
 }
 

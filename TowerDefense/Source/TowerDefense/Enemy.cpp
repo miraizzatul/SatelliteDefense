@@ -4,7 +4,7 @@
 
 Enemy::Enemy(SDL_FPoint start)
 {
-	rect = { start.x, start.y, 30.f, 30.f }; //start position and size
+	rect = { start.x, start.y, radius, radius }; //start position and size
 	speed = 100.f; //movement speed
 }
 
@@ -81,7 +81,7 @@ void Enemy::TakeDamage(float amount)
 	currentHP -= amount;
 	if (currentHP <= 0.f)
 	{
-		isAlive = true;
+		isAlive = false;
 	}
 }
 
@@ -137,4 +137,33 @@ Tower* Enemy::FindClosestTower(const SDL_FRect& enemyRect, std::vector<std::uniq
 		}
 	}
 	return closest;
+}
+
+void Enemy::EnemyOverlapBlock(std::vector<Enemy>& allEnemies)
+{
+	for (Enemy& other : allEnemies)
+	{
+		if(&other == this || !other.IsAlive()) continue;
+
+		float dx = rect.x - other.rect.x;
+		float dy = rect.y - other.rect.y;
+		float distSquared = dx * dx + dy * dy;
+		float minDist = radius + other.radius;
+
+		if (distSquared < minDist * minDist && distSquared>0.0001f)
+		{
+			float dist = std::sqrt(distSquared);
+			float overlap = 0.5f *(minDist - dist);
+
+			//normalize direction vector
+			dx /= dist;
+			dy /= dist;
+
+			//push both enemies away from each other
+			rect.x += dx * overlap;
+			rect.y += dy * overlap;
+			other.rect.x -= dx * overlap;
+			other.rect.y -= dy * overlap;
+		}
+	}
 }

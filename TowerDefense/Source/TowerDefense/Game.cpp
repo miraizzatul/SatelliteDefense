@@ -6,6 +6,8 @@
 #include "Bullet.h"
 #include <memory>
 
+std::vector<Bullet> bullets(100);
+
 Game::Game()
 {
  }
@@ -130,19 +132,32 @@ void Game::Update(float deltaTime)
 
 	for (auto& e : enemies)
 		e.Update(deltaTime, towers);
+	
+	//resolve overlaps after all enemies have moved
+	for (auto& e : enemies)
+		e.EnemyOverlapBlock(enemies);
 
 	//update bullets
 	for (auto& bullet : bullets)
-		bullet.Update(deltaTime);
+	{
+		if (!bullet.IsActive()) continue;
+
+		bullet.Update(deltaTime, enemies);
+
+		if (bullet.IsOffScreen(windowWidth, windowHeight))
+		{
+			bullet.Deactivate(); //reuse bullet instead
+		}
+	}
 
 	//remove towers that are destroyed
 	towers.erase(std::remove_if(towers.begin(), towers.end(),
 		[](std::unique_ptr<Tower>& t) { return t->IsDestroyed(); }), towers.end());
 
-	//remove bullets that are offscreen
-	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [this](const Bullet& b) {
-		return b.IsOffScreen(windowWidth, windowHeight);
-	}), bullets.end());
+	//remove enemies that are destroyed
+	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](const Enemy& e) {
+		return !e.IsAlive();
+	}), enemies.end());
 }
 
 void Game::Render()

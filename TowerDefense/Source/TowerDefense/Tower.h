@@ -18,18 +18,20 @@ public:
 
 	SDL_FRect GetRect() const;
 	bool IsDestroyed() const;
+	int GetID() const { return nextID; }
 
 	//float maxHP = 0.f;
 
 private:
 	SDL_FRect rect;
+	int ID;
+	static int nextID;
 	float range;
 	float attackCooldown;
 	float timeSinceLastShot;
 	bool isDestroyed = false;
 
 protected: 
-	//SDL_FPoint size = 
 	bool canDealDamage = true;
 	float currentHP = 100.f;
 
