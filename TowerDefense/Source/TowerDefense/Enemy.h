@@ -26,7 +26,7 @@ public:
 
 	SDL_FRect GetRect() const; //encapsulated enemy access
 
-	void EnemyOverlapBlock(std::vector<Enemy>& allEnemies);
+	void ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<std::unique_ptr<Tower>>& allTowers);
 
 private:
 
@@ -48,11 +48,14 @@ private:
 	//Find the closest towers to enemy
 	Tower* FindClosestTower(const SDL_FRect& enemyRect, std::vector<std::unique_ptr<Tower>>& towers);
 
+	bool ResolveStructureCollision(const SDL_FRect& thisRect, float radius, std::vector<std::unique_ptr<Tower>>& towers);
+
 	float attackCooldown = 1.f;
 	float attackTimer = 0.f;
 	float attackRange = 30.f;
 	float damage = 10.f;
 	float radius = 15.f;
+	float damping = 0.8f; // reduce push force to smooth out movement
 
 	bool isAlive = true;
 };

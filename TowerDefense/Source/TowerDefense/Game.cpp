@@ -22,7 +22,7 @@ bool Game::Init()
 	SDL_Init(SDL_INIT_VIDEO);
 
 	//Create sdl3 window (80*600)
-	window = SDL_CreateWindow("Tower Defense", windowWidth, windowHeight,SDL_WINDOW_RESIZABLE|SDL_EVENT_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Satellite Defense", windowWidth, windowHeight,SDL_WINDOW_RESIZABLE|SDL_EVENT_WINDOW_SHOWN);
 	if (!window)
 	{
 		SDL_Log("CreateWindow Error: %s", SDL_GetError());
@@ -135,7 +135,7 @@ void Game::Update(float deltaTime)
 	
 	//resolve overlaps after all enemies have moved
 	for (auto& e : enemies)
-		e.EnemyOverlapBlock(enemies);
+		e.ResolveEnemyCollision(enemies, towers);
 
 	//update bullets
 	for (auto& bullet : bullets)
@@ -189,8 +189,6 @@ void Game::Render()
 			SDL_RenderFillRect(renderer, &tileRect);
 		}
 	}
-	//create green tower colour
-	//SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
 
 	for (auto& tower : towers)
 		tower->Render(renderer);

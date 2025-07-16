@@ -46,7 +46,7 @@ private:
 	const int windowWidth = 800;
 	const int windowHeight = 600;
 
-	Tower* goal = nullptr;
+	class Satellite* goal = nullptr;
 
 	//Define grid settings
 	const int tileCols = 10;

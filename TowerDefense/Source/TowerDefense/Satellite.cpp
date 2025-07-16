@@ -6,3 +6,12 @@ Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g
 	canDealDamage = false;
 	currentHP = 200.f;
 }
+
+bool Satellite::IsDestroyed() const
+{
+	if(Tower::IsDestroyed())
+	{
+		return true;
+	}
+	return Tower::IsDestroyed();
+}

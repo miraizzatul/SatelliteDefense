@@ -17,7 +17,7 @@ public:
 	void TakeDamage(float amount);
 
 	SDL_FRect GetRect() const;
-	bool IsDestroyed() const;
+	virtual bool IsDestroyed() const;
 	int GetID() const { return nextID; }
 
 	//float maxHP = 0.f;

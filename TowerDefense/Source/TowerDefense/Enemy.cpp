@@ -139,31 +139,88 @@ Tower* Enemy::FindClosestTower(const SDL_FRect& enemyRect, std::vector<std::uniq
 	return closest;
 }
 
-void Enemy::EnemyOverlapBlock(std::vector<Enemy>& allEnemies)
+bool Enemy::ResolveStructureCollision(const SDL_FRect& thisRect, float radius, std::vector<std::unique_ptr<Tower>>& towers)
+{
+	SDL_FPoint center = { thisRect.x + thisRect.w / 2.f,thisRect.y + thisRect.h / 2.f };
+
+	for (const auto& tower : towers)
+	{
+		float closestX = SDL_clamp(center.x, tower->GetRect().x, tower->GetRect().x + tower->GetRect().w);
+		float closestY = SDL_clamp(center.y, tower->GetRect().y, tower->GetRect().y + tower->GetRect().h);
+
+		float dx = center.x - closestX;
+		float dy = center.y - closestY;
+
+		if ((dx * dx + dy * dy) < (radius * radius))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void Enemy::ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<std::unique_ptr<Tower>>& allTowers)
 {
 	for (Enemy& other : allEnemies)
 	{
 		if(&other == this || !other.IsAlive()) continue;
 
-		float dx = rect.x - other.rect.x;
-		float dy = rect.y - other.rect.y;
+		//Calculates center-to-center distance between the two enemies.
+		float dx = (rect.x + rect.w / 2) - (other.rect.x + other.rect.w / 2);
+		float dy = (rect.y + rect.h / 2) - (other.rect.y + other.rect.h / 2);
 		float distSquared = dx * dx + dy * dy;
-		float minDist = radius + other.radius;
 
-		if (distSquared < minDist * minDist && distSquared>0.0001f)
+		float minDist = radius + other.radius;//how far apart they need to be avoid overlapping
+
+		//if overlapping
+		if (distSquared < minDist * minDist && distSquared>0.0001f) // too close
 		{
 			float dist = std::sqrt(distSquared);
-			float overlap = 0.5f *(minDist - dist);
+			float overlap = 0.5f * (minDist - dist);// how much two enemies are intersecting
 
-			//normalize direction vector
+			//(dx, dy) normalize direction vector from other enemy to this enemy
 			dx /= dist;
 			dy /= dist;
 
-			//push both enemies away from each other
-			rect.x += dx * overlap;
-			rect.y += dy * overlap;
-			other.rect.x -= dx * overlap;
-			other.rect.y -= dy * overlap;
+			// Compute potential push amounts with damping clamp to avoid extreme jitter
+			float pushX = SDL_clamp(dx * overlap, -damping, damping);
+			float pushY = SDL_clamp(dy * overlap, -damping, damping);
+
+
+			//push both enemies away from each other and creates sliding effect: if blocked in one direction, 
+			// enemy can still move in other direction
+
+			//current enemy
+
+			SDL_FPoint originalPos = { rect.x, rect.y };
+
+			rect.x += pushX;//moves enemy along x axis, then checks if its collides with tower
+			if (ResolveStructureCollision(rect, radius, allTowers))
+			{
+				rect.x = originalPos.x;//undo x if blocked
+			}
+
+			rect.y += pushY;//moves enemy along y axis, then checks if its collides with tower
+			if (ResolveStructureCollision(rect, radius, allTowers))
+			{
+				rect.y = originalPos.y;//undo y if blocked
+			}
+
+			//other enemy
+
+			SDL_FPoint otherOriginalPos = { other.rect.x, other.rect.y };
+
+			other.rect.x -= pushX;//moves other enemy along -x axis, then checks if its collides with tower
+			if (ResolveStructureCollision(other.rect, other.radius, allTowers))
+			{
+				other.rect.x = otherOriginalPos.x;//undo -x if blocked
+			}
+
+			other.rect.y -= pushY;//moves other enemy along -y axis, then checks if its collides with tower
+			if (ResolveStructureCollision(other.rect, other.radius, allTowers))
+			{
+				other.rect.y = otherOriginalPos.y;//undo -y if blocked
+			}
 		}
 	}
 }
