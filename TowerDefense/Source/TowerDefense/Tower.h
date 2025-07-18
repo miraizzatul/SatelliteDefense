@@ -9,15 +9,16 @@ class Tower
 {
 public:
 	Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+	virtual ~Tower() = default;
 
 	void Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets);
 	void Render(SDL_Renderer* renderer, bool showRange = false) const;
 	void Move(float dx, float dy);
 	void ClampPosition(int screenWidth, int screenHeight);
-	void TakeDamage(float amount);
+	virtual void TakeDamage(float amount);
 
 	SDL_FRect GetRect() const;
-	virtual bool IsDestroyed() const;
+	bool IsDestroyed() const;
 	int GetID() const { return nextID; }
 
 	//float maxHP = 0.f;

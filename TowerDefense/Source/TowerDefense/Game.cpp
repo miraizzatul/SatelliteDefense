@@ -4,7 +4,6 @@
 #include "Tower.h"
 #include "Satellite.h"
 #include "Bullet.h"
-#include <memory>
 
 std::vector<Bullet> bullets(100);
 
@@ -49,10 +48,6 @@ bool Game::Init()
 	//present the renderer to the window
 	SDL_RenderPresent(renderer);
 
-	//set satellite at the center
-	towers.emplace_back(std::make_unique<Satellite>(windowWidth / 2.f, windowHeight / 2.f, 30.f, 150.f, 
-		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255)));
-
 	running = true;// keeps running until the window is closed
 	now = SDL_GetPerformanceCounter();// get timestamp
 	return true;
@@ -62,20 +57,64 @@ void Game::Run()
 {
 	SDL_Log("Game::Run() starting");
 
+	gameEventHandler.Bind([&]() {
+		SDL_Log("Game Over!!");
+		loseGame = true;
+		currentState = GameState::GameOver;
+	});
+
+	const Uint64 targetFrameDuration = SDL_GetPerformanceFrequency() / 60;
+	Uint64 frameStart, frameEnd, elapsed, delayTicks;
+	Uint32 delayMs;
+
 	while (running)
 	{
-		//prevent the loop from hogging the cpu since sometimes cpu might run too fast and render frames too quicky
-		SDL_Delay(1);
+		if (currentState == GameState::Quit)
+		{
+			SDL_Log("Game::Run() closing");
+			running = false;
+			continue;
+		}
 
+		frameStart = SDL_GetPerformanceCounter();
+
+		//Timing for deltaTime
 		last = now;
-		now = SDL_GetPerformanceCounter();//current timestamp
+		now = frameStart;
 
 		//SDL_GetPerformanceFrequency gives us number of ticks per second
 		deltaTime = (now - last) / (float)SDL_GetPerformanceFrequency();
 
 		ProcessInput();
-		Update(deltaTime);
-		Render();
+
+		switch (currentState)
+		{
+		case GameState::MainMenu:
+			RenderMainMenu();
+			break;
+		case GameState::Playing:
+			Update(deltaTime);
+			Render();
+			break;
+		case GameState::GameOver:
+			RenderGameOver();
+			break;
+		}
+
+		frameEnd = SDL_GetPerformanceCounter();
+		elapsed = frameEnd - frameStart;
+
+		if (elapsed < targetFrameDuration)
+		{
+			delayTicks = targetFrameDuration - elapsed;
+
+			//convert to Uint32
+			delayMs = static_cast<Uint32>((delayTicks * 1000 / SDL_GetPerformanceFrequency()));
+
+			//clamp the value just in case
+			if (delayMs > 1000) delayMs = 1000;
+				SDL_Delay(delayMs);
+		}
 	}
 }
 
@@ -94,29 +133,38 @@ void Game::ProcessInput()
 	{
 		if (event.type == SDL_EVENT_QUIT)//checks for quit events (like clicking the X button)
 		{
-			running = false;
+			currentState = GameState::Quit;
 		}
-		if (event.type == SDL_EVENT_KEY_DOWN)
+		switch (currentState)
 		{
-			keys[event.key.scancode] = true;
-			if (event.key.scancode == SDL_SCANCODE_ESCAPE) //check for keyboard input if escape key is pressed
+		case GameState::MainMenu:
+			if (event.type == SDL_EVENT_KEY_DOWN)
 			{
-				SDL_Log("Escape key pressed — exiting...");
-				running = false;
+				if (event.key.scancode == SDL_SCANCODE_RETURN)
+				{
+					StartGame(); //new function to begin gameplay
+				}
+				else if (event.key.scancode == SDL_SCANCODE_Q || event.key.scancode == SDL_SCANCODE_ESCAPE)
+				{
+					currentState = GameState::Quit;
+				}
 			}
-		}
-		else if (event.type == SDL_EVENT_KEY_UP)
-		{
-			keys[event.key.scancode] = false;
-		}
-		else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-		{
-			if (event.button.button == SDL_BUTTON_LEFT)
+			break;
+
+		case GameState::Playing:
+			HandleGameplayInput(event);// Original input logic
+			break;
+
+		case GameState::GameOver:
+			if (event.type == SDL_EVENT_KEY_DOWN && event.key.scancode == SDL_SCANCODE_R)
 			{
-				float mouseX = static_cast<float>(event.button.x);
-				float mouseY = static_cast<float>(event.button.y);
-				PlaceTowerOnGrid(mouseX, mouseY);
+				RestartGame();
 			}
+			else if (event.key.scancode == SDL_SCANCODE_Q || event.key.scancode == SDL_SCANCODE_ESCAPE)
+			{
+				currentState = GameState::Quit;
+			}
+			break;
 		}
 	}
 }
@@ -158,6 +206,51 @@ void Game::Update(float deltaTime)
 	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](const Enemy& e) {
 		return !e.IsAlive();
 	}), enemies.end());
+}
+
+void Game::HandleGameplayInput(SDL_Event& event)
+{
+	if (event.type == SDL_EVENT_KEY_DOWN)
+	{
+		keys[event.key.scancode] = true;
+		if (event.key.scancode == SDL_SCANCODE_ESCAPE) //check for keyboard input if escape key is pressed
+		{
+			SDL_Log("Escape key pressed — exiting...");
+			currentState = GameState::MainMenu;
+		}
+	}
+	else if (event.type == SDL_EVENT_KEY_UP)
+	{
+		keys[event.key.scancode] = false;
+	}
+	else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+	{
+		if (event.button.button == SDL_BUTTON_LEFT)
+		{
+			float mouseX = static_cast<float>(event.button.x);
+			float mouseY = static_cast<float>(event.button.y);
+			PlaceTowerOnGrid(mouseX, mouseY);
+		}
+	}
+}
+
+void Game::StartGame()
+{
+	SDL_Log("Starting Game...");
+	currentState = GameState::Playing;
+	loseGame = false;
+	towers.clear();
+	enemies.clear();
+
+	//set satellite at the center
+	towers.emplace_back(std::make_unique<Satellite>(windowWidth / 2.f, windowHeight / 2.f, 30.f, 150.f,
+		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), &gameEventHandler));
+}
+
+void Game::RestartGame()
+{
+	SDL_Log("Restarting Game...");
+	StartGame();
 }
 
 void Game::Render()
@@ -272,4 +365,25 @@ void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 		(snappedX, snappedY, towerSize, towerRange,
 		static_cast<Uint8>(0), static_cast<Uint8>(200), 
 			static_cast<Uint8>(0), static_cast<Uint8>(255)));
+}
+
+void Game::RenderMainMenu()
+{
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderClear(renderer);
+
+	// Draw title and instructions (in real game, use SDL_ttf for text)
+	SDL_Log("Main Menu - Press Enter to Start");
+
+	SDL_RenderPresent(renderer);
+}
+
+void Game::RenderGameOver()
+{
+	SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
+	SDL_RenderClear(renderer);
+
+	SDL_Log("Game Over - Press R TO Restart");
+
+	SDL_RenderPresent(renderer);
 }

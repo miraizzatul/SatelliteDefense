@@ -12,6 +12,9 @@ void Enemy::Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers)
 {
 	if (ReachedEnd() || !IsAlive()) return;
 
+	isAttacking = false;
+	attackTimer -= deltaTime;
+
 	Tower* closestTower = FindClosestTower(rect, towers);
 	if (closestTower)
 	{
@@ -22,7 +25,7 @@ void Enemy::Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers)
 		float dx = targetX - (rect.x + rect.w / 2); //get direction to x target
 		float dy = targetY - (rect.y + rect.h / 2); //get direction to y target
 		float length = std::sqrt(dx * dx + dy * dy); //distance to target
-		if (length > attackRange)
+		if (!isAttacking && (length > attackRange))
 		{
 			dx /= length;
 			dy /= length;

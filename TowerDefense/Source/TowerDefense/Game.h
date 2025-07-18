@@ -3,10 +3,19 @@
 #include <SDL3/SDL.h>
 #include <vector>
 #include<memory>
+#include "EventHandler.h"
 
 class Enemy;
 class Tower;
 class Bullet;
+
+enum class GameState
+{
+	MainMenu,
+	Playing,
+	GameOver,
+	Quit
+};
 
 class Game
 {
@@ -21,7 +30,10 @@ public:
 private:
 	void ProcessInput();
 	void Update(float deltaTime);
-	void Render();
+	void HandleGameplayInput(SDL_Event& event); //gameplay specific logic input
+	void StartGame();
+	void RestartGame();
+	
 	void SpawnEnemy(float deltaTime);
 	void ClampTowerMovement(float deltaTime);
 	void PlaceTowerOnGrid(float mouseX, float mouseY);
@@ -30,6 +42,10 @@ private:
 	SDL_Renderer* renderer = nullptr;
 	bool running = false;
 	bool keys[SDL_SCANCODE_COUNT] = { false };// track held keys
+
+	void Render();
+	void RenderMainMenu();
+	void RenderGameOver();
 
 	Uint64 now = 0;// get timestamp
 	Uint64 last = 0;
@@ -46,7 +62,11 @@ private:
 	const int windowWidth = 800;
 	const int windowHeight = 600;
 
-	class Satellite* goal = nullptr;
+	EventHandler gameEventHandler;
+
+	GameState currentState = GameState::MainMenu;
+
+	bool loseGame = false;
 
 	//Define grid settings
 	const int tileCols = 10;

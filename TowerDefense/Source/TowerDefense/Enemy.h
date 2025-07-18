@@ -50,6 +50,7 @@ private:
 
 	bool ResolveStructureCollision(const SDL_FRect& thisRect, float radius, std::vector<std::unique_ptr<Tower>>& towers);
 
+	bool isAttacking = false;
 	float attackCooldown = 1.f;
 	float attackTimer = 0.f;
 	float attackRange = 30.f;
