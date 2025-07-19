@@ -2,7 +2,8 @@
 
 #include <SDL3/SDL.h>
 #include <vector>
-#include<memory>
+#include <memory>
+#include <string>
 #include "EventHandler.h"
 
 class Enemy;
@@ -15,6 +16,13 @@ enum class GameState
 	Playing,
 	GameOver,
 	Quit
+};
+
+struct Button
+{
+	SDL_FRect rect;
+	SDL_Color color;
+	std::string label;
 };
 
 class Game
@@ -31,6 +39,7 @@ private:
 	void ProcessInput();
 	void Update(float deltaTime);
 	void HandleGameplayInput(SDL_Event& event); //gameplay specific logic input
+	void InitMainMenu();
 	void StartGame();
 	void RestartGame();
 	
@@ -73,5 +82,8 @@ private:
 	const int tileRows = 8;
 	const float tileWidth = 800.f / tileCols;
 	const float tileHeight = 600.f / tileRows;
+
+	//define buttons
+	std::vector<Button> menuButtons;
 
 };

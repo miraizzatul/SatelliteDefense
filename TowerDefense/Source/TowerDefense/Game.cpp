@@ -90,6 +90,7 @@ void Game::Run()
 		switch (currentState)
 		{
 		case GameState::MainMenu:
+			InitMainMenu();
 			RenderMainMenu();
 			break;
 		case GameState::Playing:
@@ -166,6 +167,26 @@ void Game::ProcessInput()
 			}
 			break;
 		}
+		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+		{
+			float mx = static_cast<float>(event.button.x);
+			float my = static_cast<float>(event.button.y);
+
+			for (const Button& btn : menuButtons)
+			{
+				if (mx >= btn.rect.x && mx <= btn.rect.x + btn.rect.w && my >= btn.rect.y && my <= btn.rect.y + btn.rect.h)
+				{
+					if (btn.label == "start")
+					{
+						StartGame(); //new function to begin gameplay
+					}
+					else if (btn.label == "quit")
+					{
+						currentState = GameState::Quit;
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -232,6 +253,24 @@ void Game::HandleGameplayInput(SDL_Event& event)
 			PlaceTowerOnGrid(mouseX, mouseY);
 		}
 	}
+}
+
+void Game::InitMainMenu()
+{
+	menuButtons.clear();
+
+	Button startButton;
+	startButton.rect = { 300, 200, 200, 60 };
+	startButton.color = { 0, 200, 0, 255 };
+	startButton.label = "start";
+
+	Button quitButton;
+	quitButton.rect = { 300, 300, 200, 60 };
+	quitButton.color = { 200, 0, 0, 255 };
+	quitButton.label = "quit";
+
+	menuButtons.push_back(startButton);
+	menuButtons.push_back(quitButton);
 }
 
 void Game::StartGame()
@@ -369,12 +408,26 @@ void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 
 void Game::RenderMainMenu()
 {
+	//main menu bg
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
+	//buttons
+	for (const auto& btn : menuButtons)
+	{
+		SDL_SetRenderDrawColor(renderer, btn.color.r, btn.color.g, btn.color.b, btn.color.a);
+		SDL_RenderFillRect(renderer, &btn.rect);
+	}
+
+	//draw button borders
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	for (const auto& btn : menuButtons)
+	{
+		SDL_RenderRect(renderer, &btn.rect);
+	}
+
 	// Draw title and instructions (in real game, use SDL_ttf for text)
 	SDL_Log("Main Menu - Press Enter to Start");
-
 	SDL_RenderPresent(renderer);
 }
 
