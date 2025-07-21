@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <SDL3/SDL.h> //include the sdl header
+#include <SDL3_ttf/SDL_ttf.h>
 #include "Enemy.h"
 #include "Tower.h"
 #include "Satellite.h"
@@ -19,6 +20,11 @@ bool Game::Init()
 {
 	//initialize sdl3
 	SDL_Init(SDL_INIT_VIDEO);
+
+	TTF_Init();
+
+	font = TTF_OpenFont("STENCIL.ttf", 24);
+	if (!font) { SDL_Log("Font error: %s", SDL_GetError()); return false; }
 
 	//Create sdl3 window (80*600)
 	window = SDL_CreateWindow("Satellite Defense", windowWidth, windowHeight,SDL_WINDOW_RESIZABLE|SDL_EVENT_WINDOW_SHOWN);
@@ -57,6 +63,8 @@ void Game::Run()
 {
 	SDL_Log("Game::Run() starting");
 
+	StartMainMenu();
+
 	gameEventHandler.Bind([&]() {
 		SDL_Log("Game Over!!");
 		loseGame = true;
@@ -90,8 +98,7 @@ void Game::Run()
 		switch (currentState)
 		{
 		case GameState::MainMenu:
-			InitMainMenu();
-			RenderMainMenu();
+			RenderMainMenu();//just draw the button, no need to init main menu and recreate the buttons again
 			break;
 		case GameState::Playing:
 			Update(deltaTime);
@@ -122,6 +129,7 @@ void Game::Run()
 void Game::Shutdown()
 {
 	//cleanup
+	TTF_CloseFont(font);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
@@ -273,6 +281,12 @@ void Game::InitMainMenu()
 	menuButtons.push_back(quitButton);
 }
 
+void Game::StartMainMenu()
+{
+	InitMainMenu();//called only once
+	currentState = GameState::MainMenu;
+}
+
 void Game::StartGame()
 {
 	SDL_Log("Starting Game...");
@@ -417,15 +431,11 @@ void Game::RenderMainMenu()
 	{
 		SDL_SetRenderDrawColor(renderer, btn.color.r, btn.color.g, btn.color.b, btn.color.a);
 		SDL_RenderFillRect(renderer, &btn.rect);
-	}
-
-	//draw button borders
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	for (const auto& btn : menuButtons)
-	{
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);//draw button borders
 		SDL_RenderRect(renderer, &btn.rect);
+		RenderButtonLabel(btn, font);
 	}
-
+	
 	// Draw title and instructions (in real game, use SDL_ttf for text)
 	SDL_Log("Main Menu - Press Enter to Start");
 	SDL_RenderPresent(renderer);
@@ -439,4 +449,27 @@ void Game::RenderGameOver()
 	SDL_Log("Game Over - Press R TO Restart");
 
 	SDL_RenderPresent(renderer);
+}
+
+void Game::RenderButtonLabel(const Button& btn, TTF_Font* font)
+{
+	SDL_Color white = { 255, 255, 255, 255 };
+	SDL_Surface* surface = TTF_RenderText_Solid(font, btn.label.c_str(),0, white);
+
+	if (!surface) return;
+
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+	if (!texture) return;
+
+	SDL_FRect textRect;
+	textRect.w = static_cast<float>(surface->w);
+	textRect.h = static_cast<float>(surface->h);
+	textRect.x = btn.rect.x + (btn.rect.w - textRect.w) / 2;
+	textRect.y = btn.rect.y + (btn.rect.h - textRect.h) / 2;
+
+	SDL_RenderTexture(renderer, texture, nullptr, &textRect);
+
+	SDL_DestroyTexture(texture);
+	SDL_DestroySurface(surface);
+
 }

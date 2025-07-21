@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <vector>
 #include <memory>
 #include <string>
@@ -40,6 +41,7 @@ private:
 	void Update(float deltaTime);
 	void HandleGameplayInput(SDL_Event& event); //gameplay specific logic input
 	void InitMainMenu();
+	void StartMainMenu();
 	void StartGame();
 	void RestartGame();
 	
@@ -55,6 +57,7 @@ private:
 	void Render();
 	void RenderMainMenu();
 	void RenderGameOver();
+	void RenderButtonLabel(const Button& btn, TTF_Font* font);
 
 	Uint64 now = 0;// get timestamp
 	Uint64 last = 0;
@@ -85,5 +88,5 @@ private:
 
 	//define buttons
 	std::vector<Button> menuButtons;
-
+	TTF_Font* font = nullptr;
 };
