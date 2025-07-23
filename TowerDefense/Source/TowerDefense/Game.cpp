@@ -21,10 +21,16 @@ bool Game::Init()
 	//initialize sdl3
 	SDL_Init(SDL_INIT_VIDEO);
 
+	//init ttf 
 	TTF_Init();
 
 	font = TTF_OpenFont("STENCIL.ttf", 24);
 	if (!font) { SDL_Log("Font error: %s", SDL_GetError()); return false; }
+
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
+
+	//set vsync before creating renderer
+	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 
 	//Create sdl3 window (80*600)
 	window = SDL_CreateWindow("Satellite Defense", windowWidth, windowHeight,SDL_WINDOW_RESIZABLE|SDL_EVENT_WINDOW_SHOWN);
@@ -34,9 +40,9 @@ bool Game::Init()
 		return false;
 	}
 
-	//set vsync before creating renderer
-	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 	renderer = SDL_CreateRenderer(window, nullptr);
+
+	SDL_Log("Renderer used: %s", SDL_GetRendererName(renderer));
 
 	//check if renderer is invalid
 	if (!renderer)
@@ -68,6 +74,7 @@ void Game::Run()
 	gameEventHandler.Bind([&]() {
 		SDL_Log("Game Over!!");
 		loseGame = true;
+		previousState = currentState;
 		currentState = GameState::GameOver;
 	});
 
@@ -105,6 +112,10 @@ void Game::Run()
 			Render();
 			break;
 		case GameState::GameOver:
+			if (previousState != GameState::GameOver && currentState == GameState::GameOver)
+			{
+				InitGameOverMenu();  // Call only once when entering GameOver
+			}
 			RenderGameOver();
 			break;
 		}
@@ -142,6 +153,7 @@ void Game::ProcessInput()
 	{
 		if (event.type == SDL_EVENT_QUIT)//checks for quit events (like clicking the X button)
 		{
+			previousState = currentState;
 			currentState = GameState::Quit;
 		}
 		switch (currentState)
@@ -155,6 +167,7 @@ void Game::ProcessInput()
 				}
 				else if (event.key.scancode == SDL_SCANCODE_Q || event.key.scancode == SDL_SCANCODE_ESCAPE)
 				{
+					previousState = currentState;
 					currentState = GameState::Quit;
 				}
 			}
@@ -171,6 +184,7 @@ void Game::ProcessInput()
 			}
 			else if (event.key.scancode == SDL_SCANCODE_Q || event.key.scancode == SDL_SCANCODE_ESCAPE)
 			{
+				previousState = currentState;
 				currentState = GameState::Quit;
 			}
 			break;
@@ -190,7 +204,23 @@ void Game::ProcessInput()
 					}
 					else if (btn.label == "quit")
 					{
+						previousState = currentState;
 						currentState = GameState::Quit;
+					}
+				}
+			}
+			for (const Button& btn : gameOverButtons)
+			{
+				if (mx >= btn.rect.x && mx <= btn.rect.x + btn.rect.w && my >= btn.rect.y && my <= btn.rect.y + btn.rect.h)
+				{
+					if (btn.label == "restart")
+					{
+						RestartGame(); //new function to begin gameplay
+					}
+					else if (btn.label == "main menu")
+					{
+						previousState = currentState;
+						currentState = GameState::MainMenu;
 					}
 				}
 			}
@@ -245,6 +275,7 @@ void Game::HandleGameplayInput(SDL_Event& event)
 		if (event.key.scancode == SDL_SCANCODE_ESCAPE) //check for keyboard input if escape key is pressed
 		{
 			SDL_Log("Escape key pressed — exiting...");
+			previousState = currentState;
 			currentState = GameState::MainMenu;
 		}
 	}
@@ -281,15 +312,35 @@ void Game::InitMainMenu()
 	menuButtons.push_back(quitButton);
 }
 
+void Game::InitGameOverMenu()
+{
+	gameOverButtons.clear();
+
+	Button restartButton;
+	restartButton.rect = { 300, 250, 200, 60 };
+	restartButton.color = { 0, 200, 0, 255 };
+	restartButton.label = "restart";
+
+	Button mainMenuButton;
+	mainMenuButton.rect = { 300, 350, 200, 60 };
+	mainMenuButton.color = { 200, 0, 0, 255 };
+	mainMenuButton.label = "main menu";
+
+	gameOverButtons.push_back(restartButton);
+	gameOverButtons.push_back(mainMenuButton);
+}
+
 void Game::StartMainMenu()
 {
 	InitMainMenu();//called only once
+	previousState = currentState;
 	currentState = GameState::MainMenu;
 }
 
 void Game::StartGame()
 {
 	SDL_Log("Starting Game...");
+	previousState = currentState;
 	currentState = GameState::Playing;
 	loseGame = false;
 	towers.clear();
@@ -427,7 +478,7 @@ void Game::RenderMainMenu()
 	SDL_RenderClear(renderer);
 
 	//buttons
-	for (const auto& btn : menuButtons)
+	for (const Button& btn : menuButtons)
 	{
 		SDL_SetRenderDrawColor(renderer, btn.color.r, btn.color.g, btn.color.b, btn.color.a);
 		SDL_RenderFillRect(renderer, &btn.rect);
@@ -443,11 +494,43 @@ void Game::RenderMainMenu()
 
 void Game::RenderGameOver()
 {
-	SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
+	//This doenst work, idk why. Will look at again in the future
+	//SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	//SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);//black, 128 alpha
+
+	//SDL_FRect overlay = { 0,0, (float)windowWidth, (float)windowHeight };
+	//SDL_RenderFillRect(renderer, &overlay);
+
+	//bg
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
+	
+	//draw game over text
+	SDL_Color white = { 255, 255, 255, 255 };
+	SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Game Over", 0, white);
+	SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+	SDL_FRect textRect;
+	textRect.w = static_cast<float>(textSurface->w);
+	textRect.h = static_cast<float>(textSurface->h);
+	textRect.x = (windowWidth - textRect.w) / 2.f;
+	textRect.y = (windowHeight - textRect.h) / 2.f-150.0f;
+
+	SDL_RenderTexture(renderer, textTexture, nullptr, &textRect);
+
+	SDL_DestroyTexture(textTexture);
+	SDL_DestroySurface(textSurface);
+
+	for (const Button& btn : gameOverButtons)
+	{
+		SDL_SetRenderDrawColor(renderer, btn.color.r, btn.color.g, btn.color.b, btn.color.a);
+		SDL_RenderFillRect(renderer, &btn.rect);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);//draw button borders
+		SDL_RenderRect(renderer, &btn.rect);
+		RenderButtonLabel(btn, font);
+	}
 
 	SDL_Log("Game Over - Press R TO Restart");
-
 	SDL_RenderPresent(renderer);
 }
 

@@ -41,6 +41,7 @@ private:
 	void Update(float deltaTime);
 	void HandleGameplayInput(SDL_Event& event); //gameplay specific logic input
 	void InitMainMenu();
+	void InitGameOverMenu();
 	void StartMainMenu();
 	void StartGame();
 	void RestartGame();
@@ -77,6 +78,7 @@ private:
 	EventHandler gameEventHandler;
 
 	GameState currentState = GameState::MainMenu;
+	GameState previousState;
 
 	bool loseGame = false;
 
@@ -88,5 +90,6 @@ private:
 
 	//define buttons
 	std::vector<Button> menuButtons;
+	std::vector<Button> gameOverButtons;
 	TTF_Font* font = nullptr;
 };
