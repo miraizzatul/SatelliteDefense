@@ -147,7 +147,6 @@
     <ClInclude Include="Source\TowerDefense\Bullet.h" />
     <ClInclude Include="Source\TowerDefense\Enemy.h" />
     <ClInclude Include="Source\TowerDefense\EventHandler.h" />
-    <ClInclude Include="Source\TowerDefense\Faction.h" />
     <ClInclude Include="Source\TowerDefense\Game.h" />
     <ClInclude Include="Source\TowerDefense\Satellite.h" />
     <ClInclude Include="Source\TowerDefense\Tower.h" />

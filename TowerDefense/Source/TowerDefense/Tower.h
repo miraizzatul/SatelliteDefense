@@ -2,7 +2,6 @@
 #include <SDL3/SDL.h>
 #include "BaseActor.h"
 #include <vector>
-#include "Faction.h"
 
 class Enemy;
 class Bullet;
@@ -28,8 +27,6 @@ public:
 	float GetMaxHealth() const;
 	bool IsRepairable() const;
 
-	Faction GetFaction() const { return faction; }
-
 private:
 	SDL_FRect rect;
 	float range;
@@ -42,7 +39,6 @@ protected:
 	float currentHP = 100.f;
 	float maxHP = 100.f;
 	bool isRepairable = true;
-	Faction faction = Faction::Player; //set player by default
 
 	//temp: tower colour
 	Uint8 red = 0, green = 0, blue = 0, alpha= 0;

@@ -1,5 +1,12 @@
 #pragma once
 
+enum class Faction
+{
+	Neutral,
+	Player,
+	Enemy
+};
+
 class BaseActor
 {
 public:
@@ -8,7 +15,13 @@ public:
 
 	int GetID() const { return objectID; }
 
+	Faction GetFaction() const { return faction; }
+
 private:
 
 	int objectID;
+	
+protected:
+
+	Faction faction = Faction::Player; //set player by default
 };

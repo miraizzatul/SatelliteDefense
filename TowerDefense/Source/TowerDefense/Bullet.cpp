@@ -15,7 +15,7 @@ void Bullet::Update(float deltaTime, std::vector<Enemy>& enemies)
 	
 	for (Enemy& enemy : enemies)
 	{
-		if (!enemy.IsAlive()) continue;
+		if (!enemy.IsAlive() || enemy.GetFaction() == owner->GetFaction()) continue;
 
 		//get center position
 
@@ -52,11 +52,11 @@ SDL_FPoint Bullet::GetPosition() const
 	return { x,y };
 }
 
-void Bullet::Activate(float startX, float startY, float targetX, float targetY, int ID)
+void Bullet::Activate(float startX, float startY, float targetX, float targetY, BaseActor* newOwner)
 {
 	x = startX;
 	y = startY;
-	onwerID = ID;
+	owner = newOwner;
 	isActive = true;
 
 	float dx = targetX - x;
@@ -72,5 +72,11 @@ void Bullet::Activate(float startX, float startY, float targetX, float targetY, 
 	{
 		vx = vy = 0.f;
 	}
+}
+
+void Bullet::Deactivate()
+{
+	isActive = false;
+	owner = nullptr; //resets owner when inactive
 }
 

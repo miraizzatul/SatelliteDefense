@@ -3,6 +3,7 @@
 #include <vector>
 
 class Enemy;
+class BaseActor;
 
 class Bullet
 {
@@ -15,8 +16,8 @@ public:
 
 	SDL_FPoint GetPosition() const;
 
-	void Activate(float startX, float startY, float targetX, float targetY, int ID);
-	void Deactivate() { isActive = false; }
+	void Activate(float startX, float startY, float targetX, float targetY, BaseActor* newOwner);
+	void Deactivate();
 	bool IsActive() const { return isActive; }
 	int GetOwnerID() const { return onwerID; }
 
@@ -28,4 +29,6 @@ private:
 	bool isActive = false;
 	int onwerID = -1;
 	float damage = 30.f;
+
+	BaseActor* owner = nullptr;//instigator
 };

@@ -3,7 +3,6 @@
 #include "BaseActor.h"
 #include <vector>
 #include <memory>
-#include "Faction.h"
 
 class Tower;
 
@@ -26,8 +25,6 @@ public:
 	bool IsAlive() const;
 	SDL_FRect GetRect() const; //encapsulated enemy access
 	void ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<std::unique_ptr<Tower>>& allTowers);
-
-	Faction GetFaction() const { return faction; }
 
 private:
 
@@ -60,8 +57,4 @@ private:
 	float damping = 0.8f; // reduce push force to smooth out movement
 
 	bool isAlive = true;
-
-protected:
-
-	Faction faction = Faction::Enemy;
 };

@@ -5,6 +5,7 @@
 Enemy::Enemy(SDL_FPoint start, int id)
 	:BaseActor(id)
 {
+	faction = Faction::Enemy;
 	SDL_Log("Enemy ID = %d", GetID());
 	rect = { start.x, start.y, radius, radius }; //start position and size
 	speed = 100.f; //movement speed

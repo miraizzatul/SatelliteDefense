@@ -8,6 +8,7 @@ Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 
 {
 	rect = { x, y, size, size };
 	red = r, green = g, blue = b, alpha = a;
+	faction = Faction::Player;
 	SDL_Log("Tower ID = %d", GetID());
 }
 
@@ -53,7 +54,7 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 		{
 			if (!bullet.IsActive())
 			{
-				bullet.Activate(startX, startY, targetX, targetY, GetID());
+				bullet.Activate(startX, startY, targetX, targetY, this);
 				timeSinceLastShot = 0.f;
 				break;
 			}
