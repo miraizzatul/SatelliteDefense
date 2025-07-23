@@ -171,6 +171,30 @@ void Game::ProcessInput()
 					currentState = GameState::Quit;
 				}
 			}
+			else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+			{
+				if (event.button.button == SDL_BUTTON_LEFT)
+				{
+					float mx = static_cast<float>(event.button.x);
+					float my = static_cast<float>(event.button.y);
+
+					for (const Button& btn : menuButtons)
+					{
+						if (mx >= btn.rect.x && mx <= btn.rect.x + btn.rect.w && my >= btn.rect.y && my <= btn.rect.y + btn.rect.h)
+						{
+							if (btn.label == "start")
+							{
+								StartGame(); //new function to begin gameplay
+							}
+							else if (btn.label == "quit")
+							{
+								previousState = currentState;
+								currentState = GameState::Quit;
+							}
+						}
+					}
+				}
+			}
 			break;
 
 		case GameState::Playing:
@@ -182,48 +206,31 @@ void Game::ProcessInput()
 			{
 				RestartGame();
 			}
-			else if (event.key.scancode == SDL_SCANCODE_Q || event.key.scancode == SDL_SCANCODE_ESCAPE)
+			else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 			{
-				previousState = currentState;
-				currentState = GameState::Quit;
+				if (event.button.button == SDL_BUTTON_LEFT)
+				{
+					float mx = static_cast<float>(event.button.x);
+					float my = static_cast<float>(event.button.y);
+
+					for (const Button& btn : gameOverButtons)
+					{
+						if (mx >= btn.rect.x && mx <= btn.rect.x + btn.rect.w && my >= btn.rect.y && my <= btn.rect.y + btn.rect.h)
+						{
+							if (btn.label == "restart")
+							{
+								RestartGame(); //new function to begin gameplay
+							}
+							else if (btn.label == "main menu")
+							{
+								previousState = currentState;
+								currentState = GameState::MainMenu;
+							}
+						}
+					}
+				}
 			}
 			break;
-		}
-		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-		{
-			float mx = static_cast<float>(event.button.x);
-			float my = static_cast<float>(event.button.y);
-
-			for (const Button& btn : menuButtons)
-			{
-				if (mx >= btn.rect.x && mx <= btn.rect.x + btn.rect.w && my >= btn.rect.y && my <= btn.rect.y + btn.rect.h)
-				{
-					if (btn.label == "start")
-					{
-						StartGame(); //new function to begin gameplay
-					}
-					else if (btn.label == "quit")
-					{
-						previousState = currentState;
-						currentState = GameState::Quit;
-					}
-				}
-			}
-			for (const Button& btn : gameOverButtons)
-			{
-				if (mx >= btn.rect.x && mx <= btn.rect.x + btn.rect.w && my >= btn.rect.y && my <= btn.rect.y + btn.rect.h)
-				{
-					if (btn.label == "restart")
-					{
-						RestartGame(); //new function to begin gameplay
-					}
-					else if (btn.label == "main menu")
-					{
-						previousState = currentState;
-						currentState = GameState::MainMenu;
-					}
-				}
-			}
 		}
 	}
 }
@@ -285,11 +292,22 @@ void Game::HandleGameplayInput(SDL_Event& event)
 	}
 	else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 	{
+		float mouseX = static_cast<float>(event.button.x);
+		float mouseY = static_cast<float>(event.button.y);
+
 		if (event.button.button == SDL_BUTTON_LEFT)
 		{
-			float mouseX = static_cast<float>(event.button.x);
-			float mouseY = static_cast<float>(event.button.y);
 			PlaceTowerOnGrid(mouseX, mouseY);
+		}
+		else if (event.button.button == SDL_BUTTON_RIGHT)
+		{
+			for (auto& tower : towers)
+			{
+				if (tower->IsRepairable())
+				{
+					tower->StartRepairTower(mouseX, mouseY);
+				}
+			}
 		}
 	}
 }
@@ -348,7 +366,9 @@ void Game::StartGame()
 
 	//set satellite at the center
 	towers.emplace_back(std::make_unique<Satellite>(windowWidth / 2.f, windowHeight / 2.f, 30.f, 150.f,
-		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), &gameEventHandler));
+		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), nextID, &gameEventHandler));
+	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
+	++nextID;
 }
 
 void Game::RestartGame()
@@ -423,7 +443,9 @@ void Game::SpawnEnemy(float deltaTime)
 			spawnPos = { static_cast<float>(rand() % windowWidth), static_cast<float>(rand() % windowHeight)};
 			break;
 		}
-		enemies.emplace_back(spawnPos);
+		enemies.emplace_back(spawnPos, nextID);
+		idToObject[enemies.back().GetID()] = &enemies.back(); //map ID to the pointer
+		++nextID;
 		enemySpawnTimer = 0.f;
 	}
 }
@@ -447,28 +469,31 @@ void Game::ClampTowerMovement(float deltaTime)
 void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 {
 	//snap mouse click to the top left of the grid cell
-	int col = static_cast<int>(mouseX / tileWidth);
+	/*int col = static_cast<int>(mouseX / tileWidth);
 	int row = static_cast<int>(mouseY / tileHeight);
 
 	float snappedX = col * tileWidth;
-	float snappedY = row * tileHeight;
+	float snappedY = row * tileHeight;*/
 	
 	//define tower size and range
 	float towerSize = 40.f;
 	float towerRange = 150.f;
 
+	float placedX = mouseX - towerSize / 2.f;
+	float placedY = mouseY - towerSize / 2.f;
+
 	for (const auto& tower : towers)
 	{
 		SDL_FRect rect = tower->GetRect();
-		if (snappedX == rect.x && snappedY == rect.y) 
+		if (placedX == rect.x && placedY == rect.y)
 		{
 			return; //tower already placed here
 		}
 	}
-	towers.emplace_back(std::make_unique<Tower>
-		(snappedX, snappedY, towerSize, towerRange,
-		static_cast<Uint8>(0), static_cast<Uint8>(200), 
-			static_cast<Uint8>(0), static_cast<Uint8>(255)));
+	towers.emplace_back(std::make_unique<Tower>(placedX, placedY, towerSize, 
+		towerRange,static_cast<Uint8>(0), static_cast<Uint8>(200), static_cast<Uint8>(0), static_cast<Uint8>(255), nextID));
+	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
+	++nextID;
 }
 
 void Game::RenderMainMenu()

@@ -5,8 +5,10 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include "EventHandler.h"
 
+class BaseActor;
 class Enemy;
 class Tower;
 class Bullet;
@@ -68,6 +70,10 @@ private:
 
 	float enemySpawnTimer = 0.f;
 	const float spawnInterval = 2.f;
+
+	//global map of objectID
+	std::unordered_map<int, BaseActor*> idToObject;
+	int nextID = 1; // global next ID
 
 	std::vector<Enemy> enemies;
 	std::vector<std::unique_ptr<Tower>> towers; //allows storing both tower and satellite objects and auto cleanup memory

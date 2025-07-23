@@ -56,5 +56,11 @@
     <ClInclude Include="Source\TowerDefense\EventHandler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\TowerDefense\Faction.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TowerDefense\BaseActor.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

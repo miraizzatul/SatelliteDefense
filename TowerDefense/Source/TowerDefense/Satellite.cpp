@@ -1,8 +1,8 @@
 #include "Satellite.h"
 #include "EventHandler.h"
 
-Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, EventHandler* onLoseGame)
-	:Tower(x,y,size,range, r, g, b, a), gameLose(onLoseGame)
+Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler* onLoseGame)
+	:Tower(x,y,size,range, r, g, b, a, id), gameLose(onLoseGame)
 {
 	canDealDamage = false;
 	currentHP = 200.f;

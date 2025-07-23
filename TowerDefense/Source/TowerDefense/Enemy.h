@@ -1,16 +1,18 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include "BaseActor.h"
 #include <vector>
 #include <memory>
+#include "Faction.h"
 
 class Tower;
 
-class Enemy
+class Enemy : public BaseActor
 {
 public:
 
 	//takes a path and init the enemy's position at first waypoint
-	Enemy(SDL_FPoint start);
+	Enemy(SDL_FPoint start,int id);
 
 	// moves enemy along the path
 	void Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers);
@@ -21,12 +23,11 @@ public:
 	void Render(SDL_Renderer* renderer) const;
 
 	bool ReachedEnd() const;
-
 	bool IsAlive() const;
-
 	SDL_FRect GetRect() const; //encapsulated enemy access
-
 	void ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<std::unique_ptr<Tower>>& allTowers);
+
+	Faction GetFaction() const { return faction; }
 
 private:
 
@@ -59,4 +60,8 @@ private:
 	float damping = 0.8f; // reduce push force to smooth out movement
 
 	bool isAlive = true;
+
+protected:
+
+	Faction faction = Faction::Enemy;
 };

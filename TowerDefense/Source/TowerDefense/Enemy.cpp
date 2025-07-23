@@ -2,8 +2,10 @@
 #include <cmath>
 #include "Tower.h"
 
-Enemy::Enemy(SDL_FPoint start)
+Enemy::Enemy(SDL_FPoint start, int id)
+	:BaseActor(id)
 {
+	SDL_Log("Enemy ID = %d", GetID());
 	rect = { start.x, start.y, radius, radius }; //start position and size
 	speed = 100.f; //movement speed
 }
@@ -122,7 +124,7 @@ Tower* Enemy::FindClosestTower(const SDL_FRect& enemyRect, std::vector<std::uniq
 
 	for (const auto& tower : towers)
 	{
-		if(tower->IsDestroyed()) continue;
+		if(tower->IsDestroyed() || tower->GetFaction() == this->faction) continue;
 
 		//get location of the tower
 		SDL_FRect tRect = tower->GetRect();

@@ -3,13 +3,12 @@
 #include "Bullet.h"
 #include "Enemy.h"
 
-int Tower::nextID = 0;
-
-Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
-	: range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr), ID(nextID++)
+Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id)
+	:BaseActor(id), range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
 {
 	rect = { x, y, size, size };
 	red = r, green = g, blue = b, alpha = a;
+	SDL_Log("Tower ID = %d", GetID());
 }
 
 void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets)
@@ -24,6 +23,8 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 
 	for (const Enemy& enemy : enemies)
 	{
+		if (enemy.GetFaction() == this->faction) continue;//skip allies
+
 		SDL_FRect enemyRect = enemy.GetRect();
 
 		//get distance between current location to target enemy location
@@ -52,7 +53,7 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 		{
 			if (!bullet.IsActive())
 			{
-				bullet.Activate(startX, startY, targetX, targetY, ID);
+				bullet.Activate(startX, startY, targetX, targetY, GetID());
 				timeSinceLastShot = 0.f;
 				break;
 			}
@@ -104,12 +105,30 @@ void Tower::ClampPosition(int screenWidth, int screenHeight)
 	if (rect.y + rect.w > screenHeight)rect.y = screenHeight- rect.h;//(Tower.y+Tower.h) bottom edge of rectangle
 }
 
+void Tower::StartRepairTower(float xLocation, float yLocation)
+{
+	if (xLocation >= rect.x && xLocation <= rect.x + rect.w && xLocation >= rect.y && yLocation <= rect.y + rect.h)
+	{
+		Repair(25.f);
+		SDL_Log("Repaired tower to %.1f / %.1f", currentHP, maxHP);
+	}
+}
+
 void Tower::TakeDamage(float amount)
 {
 	currentHP -= amount;
 	if (currentHP <= 0.f)
 	{
 		isDestroyed = true;
+	}
+}
+
+void Tower::Repair(float amount)
+{
+	currentHP += amount;
+	if (currentHP > maxHP)
+	{
+		currentHP = maxHP;
 	}
 }
 
@@ -121,4 +140,19 @@ SDL_FRect Tower::GetRect() const
 bool Tower::IsDestroyed() const
 {
 	return isDestroyed;
+}
+
+float Tower::GetHealth() const
+{
+	return currentHP;
+}
+
+float Tower::GetMaxHealth() const
+{
+	return maxHP;
+}
+
+bool Tower::IsRepairable() const
+{
+	return isRepairable;
 }
