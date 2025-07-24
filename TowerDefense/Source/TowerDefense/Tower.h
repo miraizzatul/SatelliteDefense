@@ -9,7 +9,7 @@ class Bullet;
 class Tower : public BaseActor
 {
 public:
-	Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id);
+	Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler<BaseActor&>* onDestroyed);
 	virtual ~Tower() = default;
 
 	void Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets);
@@ -18,11 +18,9 @@ public:
 	void ClampPosition(int screenWidth, int screenHeight);
 	void StartRepairTower(float xLocation, float yLocation);
 
-	virtual void TakeDamage(float amount);
 	virtual void Repair(float amount);
 
 	SDL_FRect GetRect() const;
-	bool IsDestroyed() const;
 	float GetHealth() const;
 	float GetMaxHealth() const;
 	bool IsRepairable() const;
@@ -32,12 +30,9 @@ private:
 	float range;
 	float attackCooldown;
 	float timeSinceLastShot;
-	bool isDestroyed = false;
 
 protected: 
 	bool canDealDamage = true;
-	float currentHP = 100.f;
-	float maxHP = 100.f;
 	bool isRepairable = true;
 
 	//temp: tower colour

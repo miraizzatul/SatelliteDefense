@@ -33,7 +33,10 @@
     <ClCompile Include="Source\TowerDefense\Satellite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\TowerDefense\EventHandler.cpp">
+    <ClCompile Include="Source\TowerDefense\BaseInventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\TowerDefense\BaseActor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\TowerDefense\BaseActor.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TowerDefense\BaseInventory.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

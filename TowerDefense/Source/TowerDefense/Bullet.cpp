@@ -15,7 +15,7 @@ void Bullet::Update(float deltaTime, std::vector<Enemy>& enemies)
 	
 	for (Enemy& enemy : enemies)
 	{
-		if (!enemy.IsAlive() || enemy.GetFaction() == owner->GetFaction()) continue;
+		if (enemy.IsDestroyed() || enemy.GetFaction() == owner->GetFaction()) continue;
 
 		//get center position
 

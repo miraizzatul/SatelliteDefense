@@ -3,6 +3,7 @@
 #include "BaseActor.h"
 #include <vector>
 #include <memory>
+#include "EventHandler.h"
 
 class Tower;
 
@@ -11,28 +12,21 @@ class Enemy : public BaseActor
 public:
 
 	//takes a path and init the enemy's position at first waypoint
-	Enemy(SDL_FPoint start,int id);
+	Enemy(SDL_FPoint start,int id, EventHandler<BaseActor&>* onDestroyed);
 
 	// moves enemy along the path
 	void Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers);
-
-	void TakeDamage(float amount);
 
 	//draws enemy as red rectangle on screen
 	void Render(SDL_Renderer* renderer) const;
 
 	bool ReachedEnd() const;
-	bool IsAlive() const;
 	SDL_FRect GetRect() const; //encapsulated enemy access
 	void ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<std::unique_ptr<Tower>>& allTowers);
 
 private:
-
 	//position & size of enemy (x,y,w,h)
 	SDL_FRect rect;
-
-	float currentHP = 30.f;
-	float maxHP = 0.f;
 
 	//movement speed (pixels per second)
 	float speed;
@@ -51,10 +45,8 @@ private:
 	bool isAttacking = false;
 	float attackCooldown = 1.f;
 	float attackTimer = 0.f;
-	float attackRange = 30.f;
+	float attackRange = 30.f; 
 	float damage = 10.f;
 	float radius = 15.f;
 	float damping = 0.8f; // reduce push force to smooth out movement
-
-	bool isAlive = true;
 };

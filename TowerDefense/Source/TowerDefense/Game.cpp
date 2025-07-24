@@ -71,11 +71,23 @@ void Game::Run()
 
 	StartMainMenu();
 
-	gameEventHandler.Bind([&]() {
-		SDL_Log("Game Over!!");
-		loseGame = true;
-		previousState = currentState;
-		currentState = GameState::GameOver;
+	//auto loot items after being destroyed or end the game if satellite is destroyed
+	actorDestroyedHandler.AddListener([this](BaseActor& a) {
+		Satellite* s = dynamic_cast<Satellite*>(&a);
+		if (s)
+		{
+			SDL_Log("Game Over!!");
+			loseGame = true;
+			previousState = currentState;
+			currentState = GameState::GameOver;
+		}
+		else
+		{
+			for (const LootItem& loot : a.GetLoot())
+			{
+				playerInventory.AddItem(loot);
+			}
+		}
 	});
 
 	const Uint64 targetFrameDuration = SDL_GetPerformanceFrequency() / 60;
@@ -270,7 +282,7 @@ void Game::Update(float deltaTime)
 
 	//remove enemies that are destroyed
 	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](const Enemy& e) {
-		return !e.IsAlive();
+		return e.IsDestroyed();
 	}), enemies.end());
 }
 
@@ -366,7 +378,7 @@ void Game::StartGame()
 
 	//set satellite at the center
 	towers.emplace_back(std::make_unique<Satellite>(windowWidth / 2.f, windowHeight / 2.f, 30.f, 150.f,
-		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), nextID, &gameEventHandler));
+		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), nextID, &actorDestroyedHandler));
 	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
 	++nextID;
 }
@@ -443,7 +455,7 @@ void Game::SpawnEnemy(float deltaTime)
 			spawnPos = { static_cast<float>(rand() % windowWidth), static_cast<float>(rand() % windowHeight)};
 			break;
 		}
-		enemies.emplace_back(spawnPos, nextID);
+		enemies.emplace_back(spawnPos, nextID, &actorDestroyedHandler);
 		idToObject[enemies.back().GetID()] = &enemies.back(); //map ID to the pointer
 		++nextID;
 		enemySpawnTimer = 0.f;
@@ -491,7 +503,7 @@ void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 		}
 	}
 	towers.emplace_back(std::make_unique<Tower>(placedX, placedY, towerSize, 
-		towerRange,static_cast<Uint8>(0), static_cast<Uint8>(200), static_cast<Uint8>(0), static_cast<Uint8>(255), nextID));
+		towerRange,static_cast<Uint8>(0), static_cast<Uint8>(200), static_cast<Uint8>(0), static_cast<Uint8>(255), nextID, &actorDestroyedHandler));
 	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
 	++nextID;
 }

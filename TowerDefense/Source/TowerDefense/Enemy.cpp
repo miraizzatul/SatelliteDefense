@@ -2,18 +2,22 @@
 #include <cmath>
 #include "Tower.h"
 
-Enemy::Enemy(SDL_FPoint start, int id)
-	:BaseActor(id)
+Enemy::Enemy(SDL_FPoint start, int id, EventHandler<BaseActor&>* onDestroyed)
+	:BaseActor(id, onDestroyed)
 {
+	currentHP = 30.f;
+	maxHP = 0.f;
 	faction = Faction::Enemy;
 	SDL_Log("Enemy ID = %d", GetID());
 	rect = { start.x, start.y, radius, radius }; //start position and size
 	speed = 100.f; //movement speed
+	AddLoot({ "Gold", 5 });
+	AddLoot({ "Scrap Metal", 1 });
 }
 
 void Enemy::Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers)
 {
-	if (ReachedEnd() || !IsAlive()) return;
+	if (ReachedEnd() || IsDestroyed()) return;
 
 	isAttacking = false;
 	attackTimer -= deltaTime;
@@ -82,15 +86,6 @@ void Enemy::Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers)
 	//}
 }
 
-void Enemy::TakeDamage(float amount)
-{
-	currentHP -= amount;
-	if (currentHP <= 0.f)
-	{
-		isAlive = false;
-	}
-}
-
 void Enemy::Render(SDL_Renderer* renderer) const
 {
 	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);// bright red
@@ -102,11 +97,6 @@ bool Enemy::ReachedEnd() const
 	SDL_FPoint dir = { goal.x - rect.x, goal.y - rect.y };
 
 	return (std::sqrt(dir.x * dir.x + dir.y * dir.y) < 5.f);//returns true if enemy reached final waypoint
-}
-
-bool Enemy::IsAlive() const
-{
-	return isAlive;
 }
 
 SDL_FRect Enemy::GetRect() const
@@ -169,7 +159,7 @@ void Enemy::ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<st
 {
 	for (Enemy& other : allEnemies)
 	{
-		if(&other == this || !other.IsAlive()) continue;
+		if(&other == this || other.IsDestroyed()) continue;
 
 		//Calculates center-to-center distance between the two enemies.
 		float dx = (rect.x + rect.w / 2) - (other.rect.x + other.rect.w / 2);

@@ -3,12 +3,14 @@
 #include "Bullet.h"
 #include "Enemy.h"
 
-Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id)
-	:BaseActor(id), range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
+Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler<BaseActor&>* onDestroyed)
+	:BaseActor(id, onDestroyed), range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
 {
 	rect = { x, y, size, size };
 	red = r, green = g, blue = b, alpha = a;
 	faction = Faction::Player;
+	currentHP = 100.f;
+	maxHP = 100.f;
 	SDL_Log("Tower ID = %d", GetID());
 }
 
@@ -115,15 +117,6 @@ void Tower::StartRepairTower(float xLocation, float yLocation)
 	}
 }
 
-void Tower::TakeDamage(float amount)
-{
-	currentHP -= amount;
-	if (currentHP <= 0.f)
-	{
-		isDestroyed = true;
-	}
-}
-
 void Tower::Repair(float amount)
 {
 	currentHP += amount;
@@ -136,21 +129,6 @@ void Tower::Repair(float amount)
 SDL_FRect Tower::GetRect() const
 {
 	return rect;
-}
-
-bool Tower::IsDestroyed() const
-{
-	return isDestroyed;
-}
-
-float Tower::GetHealth() const
-{
-	return currentHP;
-}
-
-float Tower::GetMaxHealth() const
-{
-	return maxHP;
 }
 
 bool Tower::IsRepairable() const

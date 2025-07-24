@@ -1,8 +1,8 @@
 #include "Satellite.h"
-#include "EventHandler.h"
+//#include "EventHandler.h"
 
-Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler* onLoseGame)
-	:Tower(x,y,size,range, r, g, b, a, id), gameLose(onLoseGame)
+Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler<BaseActor&>* onDestroyed)
+	:Tower(x,y,size,range, r, g, b, a, id, onDestroyed)
 {
 	canDealDamage = false;
 	currentHP = 200.f;
@@ -10,16 +10,7 @@ Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g
 
 void Satellite::TakeDamage(float amount)
 {
-	Tower::TakeDamage(amount);
+	BaseActor::TakeDamage(amount);
 
 	SDL_Log("Current satellite HP: %f", currentHP); 
-	if (IsDestroyed() && !hasBroadcasted)
-	{
-		hasBroadcasted = true;
-		if (gameLose)
-		{
-			gameLose->Broadcast();
-			SDL_Log("Destroyed");
-		}
-	}
 }

@@ -7,11 +7,13 @@
 #include <string>
 #include <unordered_map>
 #include "EventHandler.h"
+#include "BaseInventory.h"
 
 class BaseActor;
 class Enemy;
 class Tower;
 class Bullet;
+class Satellite;
 
 enum class GameState
 {
@@ -81,10 +83,12 @@ private:
 	const int windowWidth = 800;
 	const int windowHeight = 600;
 
-	EventHandler gameEventHandler;
+	EventHandler<BaseActor&> actorDestroyedHandler;
 
 	GameState currentState = GameState::MainMenu;
 	GameState previousState;
+
+	BaseInventory playerInventory;//owned directly
 
 	bool loseGame = false;
 
