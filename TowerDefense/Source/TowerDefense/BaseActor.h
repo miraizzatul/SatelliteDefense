@@ -15,6 +15,12 @@ struct LootItem
 	std::string name;
 	int quantity = 1;
 	bool rareLoot = false;
+
+	//if (lootitem a == lootitem b)
+	friend bool operator==(const LootItem& a, const LootItem& b)
+	{
+		return a.name == b.name;//just compare names for now
+	}
 };
 
 class BaseActor

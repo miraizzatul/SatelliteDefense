@@ -60,6 +60,19 @@ bool Game::Init()
 	//present the renderer to the window
 	SDL_RenderPresent(renderer);
 
+	//temp
+	LootItem initLoot1, initLoot2;
+	initLoot1.name = "Gold";
+	initLoot1.quantity = 3;
+	initLoot2.name = "Scrap Metal";
+	initLoot2.quantity = 1;
+
+	requiredItems.push_back(initLoot1);
+	requiredItems.push_back(initLoot2);
+
+	playerInventory.AddItem(initLoot1);
+	playerInventory.AddItem(initLoot2);
+
 	running = true;// keeps running until the window is closed
 	now = SDL_GetPerformanceCounter();// get timestamp
 	return true;
@@ -87,6 +100,7 @@ void Game::Run()
 			{
 				playerInventory.AddItem(loot);
 			}
+			playerInventory.DebugInventory();
 		}
 	});
 
@@ -249,14 +263,13 @@ void Game::ProcessInput()
 
 void Game::Update(float deltaTime)
 {
-	//ClampTowerMovement(deltaTime);
 	SpawnEnemy(deltaTime);
 
 	//Update all towers to check for enemies and shoot
 	for (auto& tower : towers)
 		tower->Update(deltaTime, enemies, bullets);
 
-	for (auto& e : enemies)
+	for (auto& e : enemies) 
 		e.Update(deltaTime, towers);
 	
 	//resolve overlaps after all enemies have moved
@@ -281,6 +294,9 @@ void Game::Update(float deltaTime)
 		[](std::unique_ptr<Tower>& t) { return t->IsDestroyed(); }), towers.end());
 
 	//remove enemies that are destroyed
+	//use removeif to reorder enemies so that other enemies are moved to the front, and the ones that we want to remove are moved to the back
+	//then lambda [&] mark enemies for removal if they are destroyed
+	//then .erase will remove the marked enemies from the enemies array
 	enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](const Enemy& e) {
 		return e.IsDestroyed();
 	}), enemies.end());
@@ -309,6 +325,21 @@ void Game::HandleGameplayInput(SDL_Event& event)
 
 		if (event.button.button == SDL_BUTTON_LEFT)
 		{
+			//check if all required items are in inventory
+			for (const LootItem& item : requiredItems)
+			{
+				if (!playerInventory.HasItem(&item))
+				{
+					SDL_Log("Missing: %s x%d", item.name.c_str(), item.quantity);
+					return;
+				}
+			}
+			//consume items 
+			for (const LootItem& item : requiredItems)
+			{
+				playerInventory.ConsumeItem(item);
+			}
+			//place tower
 			PlaceTowerOnGrid(mouseX, mouseY);
 		}
 		else if (event.button.button == SDL_BUTTON_RIGHT)
@@ -430,6 +461,11 @@ void Game::Render()
 	for (auto& bullet : bullets)
 		bullet.Render(renderer);
 
+	if (currentState == GameState::Playing)
+	{
+		RenderInventory();
+	}
+
 	SDL_RenderPresent(renderer);//present the result to the window
 }
 
@@ -544,7 +580,7 @@ void Game::RenderGameOver()
 	
 	//draw game over text
 	SDL_Color white = { 255, 255, 255, 255 };
-	SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Game Over", 0, white);
+	SDL_Surface* textSurface = TTF_RenderText_Blended(font, "Game Over", 0, white);
 	SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
 	SDL_FRect textRect;
@@ -573,23 +609,65 @@ void Game::RenderGameOver()
 
 void Game::RenderButtonLabel(const Button& btn, TTF_Font* font)
 {
-	SDL_Color white = { 255, 255, 255, 255 };
-	SDL_Surface* surface = TTF_RenderText_Solid(font, btn.label.c_str(),0, white);
+	SDL_Color white = { 255, 255, 255, 255 }; //white color for the font
+	SDL_Surface* surface = TTF_RenderText_Blended(font, btn.label.c_str(),0, white);//render anti aliased text
+
+	//TODO: Wrap button text, replaces 0 value with new wrap value
 
 	if (!surface) return;
 
+	//convert surface into GPU texture for rendering
+	//because SDL3 only renders textures, not surfaces
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 	if (!texture) return;
 
 	SDL_FRect textRect;
+
+	//set width and height of the text using surface's size
 	textRect.w = static_cast<float>(surface->w);
 	textRect.h = static_cast<float>(surface->h);
+
+	//centers text on x and y axis inside button rectangle
 	textRect.x = btn.rect.x + (btn.rect.w - textRect.w) / 2;
 	textRect.y = btn.rect.y + (btn.rect.h - textRect.h) / 2;
 
+	//render the text texture
 	SDL_RenderTexture(renderer, texture, nullptr, &textRect);
 
+	//frees up temp memory to avoid leaks
 	SDL_DestroyTexture(texture);
 	SDL_DestroySurface(surface);
+}
 
+void Game::RenderInventory()
+{
+	if (!font) return;
+
+	int startX = 20, startY = 20, lineHeight = 28;
+
+	const std::vector<LootItem>& items = playerInventory.GetItems();
+
+	if (items.empty()) return; //TODO:Remove this
+
+	for (size_t i = 0; i < items.size(); ++i)
+	{
+		const LootItem& item = items[i];
+
+		std::string line = item.name + " x" + std::to_string(item.quantity);
+
+		SDL_Surface* surface = TTF_RenderText_Blended(font, line.c_str(), 0, { 0, 0, 0, 0 });
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+		SDL_FRect dstRect;
+		dstRect.x = static_cast<float>(startX);
+		dstRect.y = static_cast<float>(startY + i * lineHeight);
+		dstRect.w = static_cast<float>(surface->w);
+		dstRect.h = static_cast<float>(surface->h);
+
+		SDL_RenderTexture(renderer, texture, nullptr, &dstRect);
+
+		SDL_DestroyTexture(texture);
+		SDL_DestroySurface(surface);
+
+	}
 }

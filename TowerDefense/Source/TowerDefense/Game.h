@@ -63,6 +63,7 @@ private:
 	void RenderMainMenu();
 	void RenderGameOver();
 	void RenderButtonLabel(const Button& btn, TTF_Font* font);
+	void RenderInventory(); //render player inventory
 
 	Uint64 now = 0;// get timestamp
 	Uint64 last = 0;
@@ -102,4 +103,8 @@ private:
 	std::vector<Button> menuButtons;
 	std::vector<Button> gameOverButtons;
 	TTF_Font* font = nullptr;
+
+	//Temp
+	//Put this in a special class or load items from database etc
+	std::vector<LootItem> requiredItems;
 };
