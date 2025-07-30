@@ -325,20 +325,6 @@ void Game::HandleGameplayInput(SDL_Event& event)
 
 		if (event.button.button == SDL_BUTTON_LEFT)
 		{
-			//check if all required items are in inventory
-			for (const LootItem& item : requiredItems)
-			{
-				if (!playerInventory.HasItem(&item))
-				{
-					SDL_Log("Missing: %s x%d", item.name.c_str(), item.quantity);
-					return;
-				}
-			}
-			//consume items 
-			for (const LootItem& item : requiredItems)
-			{
-				playerInventory.ConsumeItem(item);
-			}
 			//place tower
 			PlaceTowerOnGrid(mouseX, mouseY);
 		}
@@ -408,7 +394,11 @@ void Game::StartGame()
 	enemies.clear();
 
 	//set satellite at the center
-	towers.emplace_back(std::make_unique<Satellite>(windowWidth / 2.f, windowHeight / 2.f, 30.f, 150.f,
+	SDL_FPoint initPos = GetGridLocation(windowWidth / 2.f, windowHeight / 2.f);
+	float snappedX = initPos.x + (tileWidth - 30.f) / 2.0f;
+	float snappedY = initPos.y + (tileHeight - 30.f) / 2.0f;
+	
+	towers.emplace_back(std::make_unique<Satellite>(snappedX, snappedY, 30.f, 150.f,
 		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), nextID, &actorDestroyedHandler));
 	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
 	++nextID;
@@ -434,10 +424,10 @@ void Game::Render()
 		for (int col = 0; col < tileCols; ++col)
 		{
 			SDL_FRect tileRect = {
-				col * tileWidth,
-				row * tileHeight,
-				tileWidth,
-				tileHeight
+				static_cast<float>(col * tileWidth),
+				static_cast<float>(row * tileHeight),
+				static_cast<float>(tileWidth),
+				static_cast<float>(tileHeight)
 			};
 
 			//Alternate light and dark tiles
@@ -463,7 +453,7 @@ void Game::Render()
 
 	if (currentState == GameState::Playing)
 	{
-		RenderInventory();
+		RenderHUD();
 	}
 
 	SDL_RenderPresent(renderer);//present the result to the window
@@ -516,32 +506,66 @@ void Game::ClampTowerMovement(float deltaTime)
 
 void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 {
-	//snap mouse click to the top left of the grid cell
-	/*int col = static_cast<int>(mouseX / tileWidth);
-	int row = static_cast<int>(mouseY / tileHeight);
-
-	float snappedX = col * tileWidth;
-	float snappedY = row * tileHeight;*/
-	
 	//define tower size and range
-	float towerSize = 40.f;
+	float towerSize = 30.f;
 	float towerRange = 150.f;
 
-	float placedX = mouseX - towerSize / 2.f;
-	float placedY = mouseY - towerSize / 2.f;
+	//get grid cell location based on mouse click
+	SDL_FPoint gridLocation = GetGridLocation(mouseX, mouseY);
 
+	/*float centerX = gridLocation.x + (tileWidth - towerSize) / 2.f;
+	float centerY = gridLocation.y + (tileHeight - towerSize) / 2.f;*/
+
+	//check if all required items are in inventory
+	for (const LootItem& item : requiredItems)
+	{
+		if (!playerInventory.HasItem(&item))
+		{
+			SDL_Log("Missing: %s x%d", item.name.c_str(), item.quantity);
+			return;
+		}
+	}
+
+	//check if target location is overlapping existing towers
 	for (const auto& tower : towers)
 	{
 		SDL_FRect rect = tower->GetRect();
-		if (placedX == rect.x && placedY == rect.y)
+
+		//AABB collision check
+		bool overlap = gridLocation.x<rect.x + rect.w && gridLocation.x + towerSize>rect.x &&
+			gridLocation.y<rect.y + rect.h &&
+			gridLocation.y + towerSize>rect.y;
+
+		if (overlap)
 		{
+			SDL_Log("Cannot place tower, overlaps another tower.");
 			return; //tower already placed here
 		}
 	}
-	towers.emplace_back(std::make_unique<Tower>(placedX, placedY, towerSize, 
+
+	//consume items 
+	for (const LootItem& item : requiredItems)
+	{
+		playerInventory.ConsumeItem(item);
+	}
+
+	//safe to place
+	towers.emplace_back(std::make_unique<Tower>(gridLocation.x, gridLocation.y, towerSize,
 		towerRange,static_cast<Uint8>(0), static_cast<Uint8>(200), static_cast<Uint8>(0), static_cast<Uint8>(255), nextID, &actorDestroyedHandler));
 	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
 	++nextID;
+}
+
+SDL_FPoint Game::GetGridLocation(float xLocation, float yLocation)
+{
+	//snap location to grid cell
+	int col = static_cast<int>(xLocation / tileWidth);
+	int row = static_cast<int>(yLocation / tileHeight);
+
+	float cellX = static_cast<float>(col * tileWidth);
+	float cellY = static_cast<float>(row * tileHeight);
+
+	return SDL_FPoint{ cellX, cellY };
 }
 
 void Game::RenderMainMenu()
@@ -670,4 +694,9 @@ void Game::RenderInventory()
 		SDL_DestroySurface(surface);
 
 	}
+}
+
+void Game::RenderHUD()
+{
+	RenderInventory();
 }

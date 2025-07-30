@@ -53,6 +53,7 @@ private:
 	void SpawnEnemy(float deltaTime);
 	void ClampTowerMovement(float deltaTime);
 	void PlaceTowerOnGrid(float mouseX, float mouseY);
+	SDL_FPoint GetGridLocation(float xLocation, float yLocation);
 
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
@@ -64,6 +65,7 @@ private:
 	void RenderGameOver();
 	void RenderButtonLabel(const Button& btn, TTF_Font* font);
 	void RenderInventory(); //render player inventory
+	void RenderHUD(); //render player HUD
 
 	Uint64 now = 0;// get timestamp
 	Uint64 last = 0;
@@ -94,10 +96,10 @@ private:
 	bool loseGame = false;
 
 	//Define grid settings
-	const int tileCols = 10;
-	const int tileRows = 8;
-	const float tileWidth = 800.f / tileCols;
-	const float tileHeight = 600.f / tileRows;
+	const int tileWidth = 40;
+	const int tileHeight = 40;
+	const int tileCols = windowWidth / tileWidth;
+	const int tileRows = windowHeight / tileHeight;
 
 	//define buttons
 	std::vector<Button> menuButtons;
