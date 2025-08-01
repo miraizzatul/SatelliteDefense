@@ -22,6 +22,7 @@ public:
 
 	bool ReachedEnd() const;
 	SDL_FRect GetRect() const; //encapsulated enemy access
+	SDL_FPoint GetPosition() const;
 	void ResolveEnemyCollision(std::vector<Enemy>& allEnemies, std::vector<std::unique_ptr<Tower>>& allTowers);
 
 private:

@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include "EventHandler.h"
 #include "BaseInventory.h"
+#include "HUD.h"
 
 class BaseActor;
 class Enemy;
@@ -100,6 +101,8 @@ private:
 	const int tileHeight = 40;
 	const int tileCols = windowWidth / tileWidth;
 	const int tileRows = windowHeight / tileHeight;
+
+	HUD* hud = nullptr;// HUD item
 
 	//define buttons
 	std::vector<Button> menuButtons;

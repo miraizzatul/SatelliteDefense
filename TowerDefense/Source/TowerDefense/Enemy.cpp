@@ -25,12 +25,11 @@ void Enemy::Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers)
 	Tower* closestTower = FindClosestTower(rect, towers);
 	if (closestTower)
 	{
-		SDL_FRect tRect = closestTower->GetRect();
-		float targetX = tRect.x + tRect.w / 2;
-		float targetY = tRect.y + tRect.h / 2;
+		float targetX = closestTower->GetPosition().x;
+		float targetY = closestTower->GetPosition().y;
 
-		float dx = targetX - (rect.x + rect.w / 2); //get direction to x target
-		float dy = targetY - (rect.y + rect.h / 2); //get direction to y target
+		float dx = targetX - GetPosition().x; //get direction to x target
+		float dy = targetY - GetPosition().y; //get direction to y target
 		float length = std::sqrt(dx * dx + dy * dy); //distance to target
 		if (!isAttacking && (length > attackRange))
 		{
@@ -104,6 +103,11 @@ SDL_FRect Enemy::GetRect() const
 	return rect;
 }
 
+SDL_FPoint Enemy::GetPosition() const
+{
+	return SDL_FPoint{ rect.x + rect.w / 2,rect.y + rect.h / 2 };
+}
+
 Tower* Enemy::FindClosestTower(const SDL_FRect& enemyRect, std::vector<std::unique_ptr<Tower>>& towers)
 {
 	Tower* closest = nullptr;
@@ -122,8 +126,9 @@ Tower* Enemy::FindClosestTower(const SDL_FRect& enemyRect, std::vector<std::uniq
 		float tx = tRect.x + tRect.w / 2;
 		float ty = tRect.y + tRect.h / 2;
 
-		float dx = tx - ex;
-		float dy = ty - ey;
+		//get tower distance from enemy
+		float dx = tower->GetPosition().x - GetPosition().x;
+		float dy = tower->GetPosition().y - GetPosition().y;
 		float dist = std::sqrt(dx * dx + dy + dy);
 
 		if (dist < closestDist)

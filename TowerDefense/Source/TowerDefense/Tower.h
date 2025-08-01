@@ -21,6 +21,7 @@ public:
 	virtual void Repair(float amount);
 
 	SDL_FRect GetRect() const;
+	SDL_FPoint GetPosition() const;
 	float GetHealth() const;
 	float GetMaxHealth() const;
 	bool IsRepairable() const;

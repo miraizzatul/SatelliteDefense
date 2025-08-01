@@ -60,6 +60,9 @@ bool Game::Init()
 	//present the renderer to the window
 	SDL_RenderPresent(renderer);
 
+	//initialize HUD
+	hud = new HUD(renderer, font, windowWidth, windowHeight);
+
 	//temp
 	LootItem initLoot1, initLoot2;
 	initLoot1.name = "Gold";
@@ -166,6 +169,8 @@ void Game::Run()
 void Game::Shutdown()
 {
 	//cleanup
+	delete hud;
+	hud = nullptr;
 	TTF_CloseFont(font);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -346,12 +351,12 @@ void Game::InitMainMenu()
 	menuButtons.clear();
 
 	Button startButton;
-	startButton.rect = { 300, 200, 200, 60 };
+	startButton.rect = { 300, 250, 200, 60 };
 	startButton.color = { 0, 200, 0, 255 };
 	startButton.label = "start";
 
 	Button quitButton;
-	quitButton.rect = { 300, 300, 200, 60 };
+	quitButton.rect = { 300, 350, 200, 60 };
 	quitButton.color = { 200, 0, 0, 255 };
 	quitButton.label = "quit";
 
@@ -574,6 +579,22 @@ void Game::RenderMainMenu()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
+	//draw game over text
+	SDL_Color white = { 255, 255, 255, 255 };
+	SDL_Surface* textSurface = TTF_RenderText_Blended(font, "Satellite Defense", 0, white);
+	SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+	SDL_FRect textRect;
+	textRect.w = static_cast<float>(textSurface->w);
+	textRect.h = static_cast<float>(textSurface->h);
+	textRect.x = (windowWidth - textRect.w) / 2.f;
+	textRect.y = (windowHeight - textRect.h) / 2.f - 150.0f;
+
+	SDL_RenderTexture(renderer, textTexture, nullptr, &textRect);
+
+	SDL_DestroyTexture(textTexture);
+	SDL_DestroySurface(textSurface);
+
 	//buttons
 	for (const Button& btn : menuButtons)
 	{
@@ -611,7 +632,7 @@ void Game::RenderGameOver()
 	textRect.w = static_cast<float>(textSurface->w);
 	textRect.h = static_cast<float>(textSurface->h);
 	textRect.x = (windowWidth - textRect.w) / 2.f;
-	textRect.y = (windowHeight - textRect.h) / 2.f-150.0f;
+	textRect.y = (windowHeight - textRect.h) / 2.f - 150.0f;
 
 	SDL_RenderTexture(renderer, textTexture, nullptr, &textRect);
 
@@ -698,5 +719,7 @@ void Game::RenderInventory()
 
 void Game::RenderHUD()
 {
-	RenderInventory();
+	//RenderInventory();
+	if (hud)
+		hud->RenderAll(0, 0, playerInventory, towers, enemies, windowWidth, windowHeight);
 }

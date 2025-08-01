@@ -28,11 +28,9 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 	{
 		if (enemy.GetFaction() == this->faction) continue;//skip allies
 
-		SDL_FRect enemyRect = enemy.GetRect();
-
 		//get distance between current location to target enemy location
-		float dx = (enemyRect.x + enemyRect.w / 2) - (rect.x + rect.w / 2);
-		float dy = (enemyRect.y + enemyRect.h / 2) - (rect.y + rect.h / 2);
+		float dx = enemy.GetPosition().x - GetPosition().x;
+		float dy = enemy.GetPosition().y - GetPosition().y;
 		float dist = std::sqrt(dx * dx + dy * dy);
 
 		if (dist < closestDist)
@@ -43,14 +41,13 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 	}
 	if (target && timeSinceLastShot >= attackCooldown)
 	{
-		//calculate bullet spawn point(center of tower)
-		float startX = rect.x + rect.w / 2;
-		float startY = rect.y + rect.h / 2;
+		//calculate current bullet spawn point(center of tower)
+		float startX = GetPosition().x;
+		float startY = GetPosition().y;
 
 		//calculate bullet target point(center of enemy)
-		SDL_FRect enemyRect = target->GetRect();
-		float targetX = enemyRect.x + enemyRect.w / 2;
-		float targetY= enemyRect.y + enemyRect.h / 2;
+		float targetX = target->GetPosition().x;
+		float targetY= target->GetPosition().y;
 
 		for (Bullet& bullet : bullets)
 		{
@@ -73,8 +70,8 @@ void Tower::Render(SDL_Renderer* renderer, bool showRange) const
 	if (showRange)
 	{
 		//draw circle range (debug)
-		int centerX = static_cast<int>(rect.x + rect.w / 2);
-		int centerY = static_cast<int>(rect.y + rect.h / 2);
+		int centerX = static_cast<int>(GetPosition().x);
+		int centerY = static_cast<int>(GetPosition().y);
 		int r = static_cast<int>(range);
 
 		SDL_SetRenderDrawColor(renderer, 0, 200, 0, 64);
@@ -129,6 +126,11 @@ void Tower::Repair(float amount)
 SDL_FRect Tower::GetRect() const
 {
 	return rect;
+}
+
+SDL_FPoint Tower::GetPosition() const
+{
+	return SDL_FPoint{ rect.x + rect.w / 2,rect.y + rect.h / 2 };
 }
 
 bool Tower::IsRepairable() const
