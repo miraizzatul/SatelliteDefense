@@ -1,4 +1,5 @@
 #pragma once
+#include <SDL3/SDL.h>
 #include <string>
 #include <vector>
 #include "EventHandler.h"
@@ -26,7 +27,7 @@ struct LootItem
 class BaseActor
 {
 public:
-	BaseActor(int id, EventHandler<BaseActor&>* onDestroyed);
+	BaseActor(int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed);
 	virtual ~BaseActor() = default;
 
 	int GetID() const;
@@ -39,6 +40,7 @@ public:
 	float GetHealth() const;
 	float GetMaxHealth() const;
 	bool IsDestroyed() const;
+	SDL_Color GetActorColor() const;
 
 private:
 	int objectID;
@@ -46,6 +48,8 @@ private:
 	
 protected:
 	Faction faction = Faction::Player; //set player by default
+	SDL_Color actorColor = { 255,255,255,255 };//actor color codes
+
 	bool hasBroadcasted = false;
 	float currentHP = 100.f;
 	float maxHP = 100.f;

@@ -2,8 +2,8 @@
 #include <cmath>
 #include "Tower.h"
 
-Enemy::Enemy(SDL_FPoint start, int id, EventHandler<BaseActor&>* onDestroyed)
-	:BaseActor(id, onDestroyed)
+Enemy::Enemy(SDL_FPoint start, int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed)
+	:BaseActor(id, newColor, onDestroyed)
 {
 	currentHP = 30.f;
 	maxHP = 0.f;
@@ -87,7 +87,7 @@ void Enemy::Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers)
 
 void Enemy::Render(SDL_Renderer* renderer) const
 {
-	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);// bright red
+	SDL_SetRenderDrawColor(renderer, actorColor.r, actorColor.g, actorColor.b, actorColor.a);// bright red
 	SDL_RenderFillRect(renderer, &rect); //draw enemy
 }
 

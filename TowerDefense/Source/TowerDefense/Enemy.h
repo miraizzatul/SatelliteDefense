@@ -12,7 +12,7 @@ class Enemy : public BaseActor
 public:
 
 	//takes a path and init the enemy's position at first waypoint
-	Enemy(SDL_FPoint start,int id, EventHandler<BaseActor&>* onDestroyed);
+	Enemy(SDL_FPoint start,int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed);
 
 	// moves enemy along the path
 	void Update(float deltaTime, std::vector<std::unique_ptr<Tower>>& towers);

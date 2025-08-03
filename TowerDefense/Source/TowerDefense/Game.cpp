@@ -403,8 +403,9 @@ void Game::StartGame()
 	float snappedX = initPos.x + (tileWidth - 30.f) / 2.0f;
 	float snappedY = initPos.y + (tileHeight - 30.f) / 2.0f;
 	
-	towers.emplace_back(std::make_unique<Satellite>(snappedX, snappedY, 30.f, 150.f,
-		static_cast<Uint8>(121), static_cast<Uint8>(209), static_cast<Uint8>(145), static_cast<Uint8>(255), nextID, &actorDestroyedHandler));
+	SDL_Color newColor = { 121,209,145, 255 };
+
+	towers.emplace_back(std::make_unique<Satellite>(snappedX, snappedY, 30.f, 150.f, nextID, &newColor, &actorDestroyedHandler));
 	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
 	++nextID;
 }
@@ -486,7 +487,10 @@ void Game::SpawnEnemy(float deltaTime)
 			spawnPos = { static_cast<float>(rand() % windowWidth), static_cast<float>(rand() % windowHeight)};
 			break;
 		}
-		enemies.emplace_back(spawnPos, nextID, &actorDestroyedHandler);
+
+		SDL_Color newColor = { 255, 0, 0, 255 };
+
+		enemies.emplace_back(spawnPos, nextID, &newColor, &actorDestroyedHandler);
 		idToObject[enemies.back().GetID()] = &enemies.back(); //map ID to the pointer
 		++nextID;
 		enemySpawnTimer = 0.f;
@@ -554,9 +558,10 @@ void Game::PlaceTowerOnGrid(float mouseX, float mouseY)
 		playerInventory.ConsumeItem(item);
 	}
 
+	SDL_Color newColor = { 0,200,0, 255 };
+
 	//safe to place
-	towers.emplace_back(std::make_unique<Tower>(gridLocation.x, gridLocation.y, towerSize,
-		towerRange,static_cast<Uint8>(0), static_cast<Uint8>(200), static_cast<Uint8>(0), static_cast<Uint8>(255), nextID, &actorDestroyedHandler));
+	towers.emplace_back(std::make_unique<Tower>(gridLocation.x, gridLocation.y, towerSize, towerRange, nextID, &newColor, &actorDestroyedHandler));
 	idToObject[towers.back()->GetID()] = towers.back().get(); //map ID to the pointer
 	++nextID;
 }
@@ -721,5 +726,5 @@ void Game::RenderHUD()
 {
 	//RenderInventory();
 	if (hud)
-		hud->RenderAll(0, 0, playerInventory, towers, enemies, windowWidth, windowHeight);
+		hud->RenderAll(0, 0, playerInventory, towers, enemies, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 }

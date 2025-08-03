@@ -44,14 +44,14 @@ void HUD::RenderMiniMap(const std::vector<std::unique_ptr<Tower>>& towers, const
 	{
 		SDL_FPoint p = t->GetPosition();
 		SDL_FRect dot = { rect.x + p.x * scaleX - 2, rect.y + p.y * scaleY - 2, 4, 4 };// 4x4 pixel dot size (scaleX-2 centers the 4x4 dot)
-		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+		SDL_SetRenderDrawColor(renderer, t->GetActorColor().r, t->GetActorColor().g, t->GetActorColor().b, t->GetActorColor().a);
 		SDL_RenderFillRect(renderer, &dot);
 	}
 	for (const auto& e : enemies)
 	{
 		SDL_FPoint p = e.GetPosition();
 		SDL_FRect dot = { rect.x + p.x * scaleX - 2, rect.y + p.y * scaleY - 2, 4, 4 };// 4x4 pixel dot size
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		SDL_SetRenderDrawColor(renderer, e.GetActorColor().r, e.GetActorColor().g, e.GetActorColor().b, e.GetActorColor().a);
 		SDL_RenderFillRect(renderer, &dot);
 	}
 

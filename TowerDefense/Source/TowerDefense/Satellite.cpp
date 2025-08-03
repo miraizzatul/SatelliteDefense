@@ -1,8 +1,8 @@
 #include "Satellite.h"
 //#include "EventHandler.h"
 
-Satellite::Satellite(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler<BaseActor&>* onDestroyed)
-	:Tower(x,y,size,range, r, g, b, a, id, onDestroyed)
+Satellite::Satellite(float x, float y, float size, float range, int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed)
+	:Tower(x,y,size,range, id, newColor, onDestroyed)
 {
 	canDealDamage = false;
 	currentHP = 200.f;

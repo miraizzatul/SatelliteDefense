@@ -3,11 +3,10 @@
 #include "Bullet.h"
 #include "Enemy.h"
 
-Tower::Tower(float x, float y, float size, float range, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int id, EventHandler<BaseActor&>* onDestroyed)
-	:BaseActor(id, onDestroyed), range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
+Tower::Tower(float x, float y, float size, float range, int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed)
+	:BaseActor(id, newColor, onDestroyed), range(range), attackCooldown(1.f), timeSinceLastShot(0.f), target(nullptr)
 {
 	rect = { x, y, size, size };
-	red = r, green = g, blue = b, alpha = a;
 	faction = Faction::Player;
 	currentHP = 100.f;
 	maxHP = 100.f;
@@ -64,7 +63,7 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 void Tower::Render(SDL_Renderer* renderer, bool showRange) const
 {
 	//tower square
-	SDL_SetRenderDrawColor(renderer, red, green, blue, alpha);
+	SDL_SetRenderDrawColor(renderer, actorColor.r, actorColor.g, actorColor.b, actorColor.a);
 	SDL_RenderFillRect(renderer, &rect);
 
 	if (showRange)

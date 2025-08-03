@@ -1,8 +1,8 @@
 #include "BaseActor.h"
 #include <SDL3/SDL_log.h>
 
-BaseActor::BaseActor(int id, EventHandler<BaseActor&>* onDestroyed)
-	:objectID(id), OnDestroyed(onDestroyed)
+BaseActor::BaseActor(int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed)
+	:objectID(id), actorColor(*newColor), OnDestroyed(onDestroyed)
 {
 }
 
@@ -57,4 +57,9 @@ float BaseActor::GetMaxHealth() const
 bool BaseActor::IsDestroyed() const
 {
 	return isDestroyed;
+}
+
+SDL_Color BaseActor::GetActorColor() const
+{
+	return actorColor;
 }
