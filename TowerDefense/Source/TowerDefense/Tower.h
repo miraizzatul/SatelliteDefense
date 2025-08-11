@@ -12,6 +12,7 @@ public:
 	Tower(float x, float y, float size, float range, int id, SDL_Color* newColor, EventHandler<BaseActor&>* onDestroyed);
 	virtual ~Tower() = default;
 
+	void FindTarget(const std::vector<Enemy>& enemies);
 	void Update(float deltaTime, const std::vector<Enemy>& enemies, std::vector<Bullet>& bullets);
 	void Render(SDL_Renderer* renderer, bool showRange = false) const;
 	void Move(float dx, float dy);
@@ -25,6 +26,7 @@ public:
 	float GetHealth() const;
 	float GetMaxHealth() const;
 	bool IsRepairable() const;
+	float DistanceToTarget(const SDL_FPoint& a, const SDL_FPoint& b);
 
 private:
 	SDL_FRect rect;

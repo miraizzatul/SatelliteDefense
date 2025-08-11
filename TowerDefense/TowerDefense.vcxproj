@@ -142,6 +142,7 @@
     <ClCompile Include="Source\TowerDefense\Game.cpp" />
     <ClCompile Include="Source\TowerDefense\HUD.cpp" />
     <ClCompile Include="Source\TowerDefense\Satellite.cpp" />
+    <ClCompile Include="Source\TowerDefense\Texture.cpp" />
     <ClCompile Include="Source\TowerDefense\Tower.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -153,6 +154,7 @@
     <ClInclude Include="Source\TowerDefense\Game.h" />
     <ClInclude Include="Source\TowerDefense\HUD.h" />
     <ClInclude Include="Source\TowerDefense\Satellite.h" />
+    <ClInclude Include="Source\TowerDefense\Texture.h" />
     <ClInclude Include="Source\TowerDefense\Tower.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,24 +20,8 @@ void Tower::Update(float deltaTime, const std::vector<Enemy>& enemies, std::vect
 	timeSinceLastShot += deltaTime;
 
 	//Find closest enemy in range
-	float closestDist = range;
-	target = nullptr;
-
-	for (const Enemy& enemy : enemies)
-	{
-		if (enemy.GetFaction() == this->faction) continue;//skip allies
-
-		//get distance between current location to target enemy location
-		float dx = enemy.GetPosition().x - GetPosition().x;
-		float dy = enemy.GetPosition().y - GetPosition().y;
-		float dist = std::sqrt(dx * dx + dy * dy);
-
-		if (dist < closestDist)
-		{
-			closestDist = dist;
-			target = &enemy;
-		}
-	}
+	FindTarget(enemies);
+	
 	if (target && timeSinceLastShot >= attackCooldown)
 	{
 		//calculate current bullet spawn point(center of tower)
@@ -113,6 +97,13 @@ void Tower::StartRepairTower(float xLocation, float yLocation)
 	}
 }
 
+float Tower::DistanceToTarget(const SDL_FPoint& a, const SDL_FPoint& b)
+{
+	float dx = a.x - b.x;
+	float dy = a.y - b.y;
+	return std::sqrt(dx * dx + dy * dy);
+}
+
 void Tower::Repair(float amount)
 {
 	currentHP += amount;
@@ -135,4 +126,24 @@ SDL_FPoint Tower::GetPosition() const
 bool Tower::IsRepairable() const
 {
 	return isRepairable;
+}
+
+void Tower::FindTarget(const std::vector<Enemy>& enemies)
+{
+	float closestDist = range;
+	target = nullptr;
+
+	for (const Enemy& enemy : enemies)
+	{
+		if (enemy.GetFaction() == this->faction) continue;//skip allies
+
+		//get distance between current location to target enemy location
+		float dist = DistanceToTarget(enemy.GetPosition(), GetPosition());
+
+		if (dist < closestDist)
+		{
+			closestDist = dist;
+			target = &enemy;
+		}
+	}
 }
